@@ -1,0 +1,19 @@
+build
+node_modules
+yarn-error.log
+
+# Logs
+logs
+*.log
+*.rdb
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# VS Code config
+/.vscode
+
+.DS_Store
+.env 
