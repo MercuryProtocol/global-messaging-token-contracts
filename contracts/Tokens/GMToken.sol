@@ -24,7 +24,7 @@ contract GMToken is StandardToken {
     *  Multi-sig wallets
     */
     address public ethFundMultiSig;  // Multi-sig address for ETH owned by Radical App LLC
-    address public gmtFundMultiSig;  // Multi-sig address for GMT allocated to Radical App LLC development and User Growth Pool
+    address public gmtFundMultiSig;  // Multi-sig address for GMT allocated to Radical App LLC
 
     /*
     *  Crowdsale parameters
@@ -32,13 +32,11 @@ contract GMToken is StandardToken {
     bool public crowdSaleFinalized;
     uint256 public startBlock;
     uint256 public endBlock;
-    uint256 public assignedSupply; // GMT tokens assigned to sale participants
-    uint256 public constant gmtFund = 500 * (10**6) * 10**decimals;  // 500M GMT reserved
+    uint256 public assignedSupply;  // Total GMT tokens currently assigned
+    uint256 public constant gmtFund = 500 * (10**6) * 10**decimals;  // 500M GMT reserved for development and user growth fund 
     uint256 public constant tokenExchangeRate = 4316;  // TODO: Units of GMT per ETH
-    uint256 public constant minCap =  100 * (10**6) * 10**decimals;
-    uint256 public constant saleDuration =  30; // 30 days sale period
-
-    // TODO: Need to add 30 days period??
+    uint256 public constant minCap =  100 * (10**6) * 10**decimals;  // 100M min cap for GMT tokens
+    uint256 public constant saleDuration =  30;  // 30 days sale period
 
     /*
     *  Events
@@ -47,96 +45,92 @@ contract GMToken is StandardToken {
     event CreateGMT(address indexed _to, uint256 _value);
 
     modifier onlyBy(address account){
-      require(msg.sender == account);  
-      _;
+        require(msg.sender == account);  
+        _;
+    }
+
+    function changeOwner(address newOwner) onlyBy(owner) {
+        owner = newOwner;
     }
 
     modifier minCapReached() {
-      assert((now > endBlock) || assignedSupply >= minCap);
-      _;
+        assert((now > endBlock) || assignedSupply >= minCap);
+        _;
     }
 
     modifier respectTimeFrame() {
-      assert((now > startBlock) && (now < endBlock));
-      _;
+        assert((now > startBlock) && (now < endBlock));
+        _;
     }
 
     modifier notFinalized() {
-      assert(!crowdSaleFinalized);
-      _;
+        assert(!crowdSaleFinalized);
+        _;
     }
 
     /*
     *  Constructor
     */
     function GMToken(address _ethFundMultiSig, address _gmtFundMultiSig) {
-      require(_gmtFundMultiSig != 0x0);
-      require(_ethFundMultiSig != 0x0);
+        require(_gmtFundMultiSig != 0x0);
+        require(_ethFundMultiSig != 0x0);
 
-      owner = msg.sender;
-      crowdSaleFinalized = false;  // Controls pre through crowdsale state
-      ethFundMultiSig = _ethFundMultiSig;
-      gmtFundMultiSig = _gmtFundMultiSig;
-      startBlock = now;
-      endBlock = now + (saleDuration * 1 days);
-      totalSupply = 1000 * (10**6) * 10**decimals; // 1B total GMT tokens
-      balances[gmtFundMultiSig] = gmtFund;  // Deposit Radical App LLC share into Multi-sig
-      assignedSupply = gmtFund; // Start total supply with reserved GMT amount
-      CreateGMT(gmtFundMultiSig, gmtFund);  // Log Radical App LLC fund  
+        owner = msg.sender;
+        crowdSaleFinalized = false;  // Controls pre through crowdsale state
+        ethFundMultiSig = _ethFundMultiSig;
+        gmtFundMultiSig = _gmtFundMultiSig;
+        startBlock = now;
+        endBlock = now + (saleDuration * 1 days);
+        totalSupply = 1000 * (10**6) * 10**decimals;  // 1B total GMT tokens
+        balances[gmtFundMultiSig] = gmtFund;  // Deposit Radical App LLC share into Multi-sig
+        assignedSupply = gmtFund;  // Start assigned supply with reserved GMT fund amount
+        CreateGMT(gmtFundMultiSig, gmtFund);  // Log Radical App LLC fund  
     }
 
     // @notice Create `msg.value` ETH worth of GMT
     function createTokens() respectTimeFrame notFinalized payable external {
-      assert(msg.value > 0);
+        assert(msg.value > 0);
 
-      // Check that we're not over totals
-      uint256 tokens = msg.value.mul(tokenExchangeRate); 
-      uint256 checkedSupply = assignedSupply.add(tokens);
+        // Check that we're not over totals
+        uint256 tokens = msg.value.mul(tokenExchangeRate); 
+        uint256 checkedSupply = assignedSupply.add(tokens);
 
-      // Return money if reached token supply
-      assert(checkedSupply <= totalSupply); 
+        // Return money if reached token supply
+        assert(checkedSupply <= totalSupply); 
 
-      assignedSupply = checkedSupply;
-      balances[msg.sender] += tokens;
-      CreateGMT(msg.sender, tokens);  // Logs token creation for UI purposes
+        assignedSupply = checkedSupply;
+        balances[msg.sender] += tokens;
+        CreateGMT(msg.sender, tokens);  // Logs token creation for UI purposes
     }
 
     // @notice Ends the funding period and sends the ETH to Multi-sig wallet
     function finalize() onlyBy(owner) notFinalized minCapReached {
-      // Transition to operational
-      crowdSaleFinalized = true;
+        crowdSaleFinalized = true;
 
-      if(!gmtFundMultiSig.send(this.balance))
-        return false;
+        if(!ethFundMultiSig.send(this.balance))
+          return false;
     }
 
     // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
-    function refund() onlyBy(owner) respectTimeFrame notFinalized {
-      assert(assignedSupply >= minCap);  // No refunds if we sold enough
-      assert(msg.sender != gmtFundMultiSig);  // Radical App LLC not entitled to a refund
+    function refund() onlyBy(owner) notFinalized {
+        assert(assignedSupply < minCap);  // No refunds if we sold enough
+        assert(block.number > endBlock);  // prevents refund until sale period is over
+        assert(msg.sender != gmtFundMultiSig);  // Radical App LLC not entitled to a refund
 
-      uint256 gmtVal = balances[msg.sender];
-      require(gmtVal > 0); // Prevent refund if sender balance is 0
+        uint256 gmtVal = balances[msg.sender];
+        require(gmtVal > 0); // Prevent refund if sender balance is 0
 
-      balances[msg.sender] -= gmtVal;
-      assignedSupply = assignedSupply.sub(gmtVal);
-      
-      uint256 ethVal = gmtVal.div(tokenExchangeRate);
-      
-      if(!msg.sender.send(ethVal)) {
-        balances[msg.sender] += gmtVal;
-        assignedSupply = assignedSupply.add(gmtVal);
-        return false; 
-      }
+        balances[msg.sender] -= gmtVal;
+        assignedSupply = assignedSupply.sub(gmtVal);
+        
+        uint256 ethVal = gmtVal.div(tokenExchangeRate);
+        
+        if(!msg.sender.send(ethVal)) {
+          balances[msg.sender] += gmtVal;
+          assignedSupply = assignedSupply.add(gmtVal);
+          return false; 
+        }
 
-      RefundSent(msg.sender, ethVal);  // Log successful refund 
-    }
-
-    // @return true if the transaction can buy tokens
-    function validPurchase() internal constant returns (bool) {
-      uint256 current = block.number;
-      bool withinPeriod = current >= startBlock && current <= endBlock;
-      bool nonZeroPurchase = msg.value != 0;
-      return withinPeriod && nonZeroPurchase;
+        RefundSent(msg.sender, ethVal);  // Log successful refund 
     }
 }
