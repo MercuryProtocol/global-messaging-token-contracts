@@ -125,7 +125,12 @@ contract GMToken is StandardToken {
         
         uint256 ethVal = gmtVal.div(tokenExchangeRate);
         
-        msg.sender.transfer(ethVal);
+        if(!msg.sender.send(ethVal)) {
+          // revert state due to unsuccessful refund
+          balances[msg.sender] += gmtVal;
+          assignedSupply = assignedSupply.add(gmtVal);
+          return false; 
+        }
 
         RefundSent(msg.sender, ethVal);  // Log successful refund 
     }
