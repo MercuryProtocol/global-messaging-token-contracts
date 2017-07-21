@@ -16,15 +16,15 @@ contract GMToken is StandardToken {
     string public version = "1.0";
 
     /*
-    *  Contract owner (Radical App LLC team)
+    *  Contract owner (Radical App International team)
     */
     address public owner;
 
     /*
     *  Multi-sig wallets
     */
-    address public ethFundMultiSig;  // Multi-sig address for ETH owned by Radical App LLC
-    address public gmtFundMultiSig;  // Multi-sig address for GMT allocated to Radical App LLC
+    address public ethFundMultiSig;  // Multi-sig address for ETH owned by Radical App International
+    address public gmtFundMultiSig;  // Multi-sig address for GMT allocated to Radical App International
 
     /*
     *  Crowdsale parameters
@@ -82,12 +82,13 @@ contract GMToken is StandardToken {
         startBlock = now;
         endBlock = now + (saleDuration * 1 days);
         totalSupply = 1000 * (10**6) * 10**decimals;  // 1B total GMT tokens
-        balances[gmtFundMultiSig] = gmtFund;  // Deposit Radical App LLC share into Multi-sig
+        balances[gmtFundMultiSig] = gmtFund;  // Deposit Radical App International share into Multi-sig
         assignedSupply = gmtFund;  // Start assigned supply with reserved GMT fund amount
-        CreateGMT(gmtFundMultiSig, gmtFund);  // Log Radical App LLC fund  
+        CreateGMT(gmtFundMultiSig, gmtFund);  // Log Radical App International fund  
     }
 
     // @notice Create `msg.value` ETH worth of GMT
+    // TODO: make this the default function?
     function createTokens() respectTimeFrame notFinalized payable external {
         assert(msg.value > 0);
 
@@ -98,8 +99,8 @@ contract GMToken is StandardToken {
         // Return money if reached token supply
         assert(checkedSupply <= totalSupply); 
 
-        assignedSupply = checkedSupply;
         balances[msg.sender] += tokens;
+        assignedSupply = checkedSupply;
         CreateGMT(msg.sender, tokens);  // Logs token creation for UI purposes
     }
 
@@ -107,15 +108,14 @@ contract GMToken is StandardToken {
     function finalize() onlyBy(owner) notFinalized minCapReached {
         crowdSaleFinalized = true;
 
-        if(!ethFundMultiSig.send(this.balance))
-          return false;
+        ethFundMultiSig.transfer(this.balance);
     }
 
     // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
     function refund() onlyBy(owner) notFinalized {
         assert(assignedSupply < minCap);  // No refunds if we sold enough
         assert(block.number > endBlock);  // prevents refund until sale period is over
-        assert(msg.sender != gmtFundMultiSig);  // Radical App LLC not entitled to a refund
+        assert(msg.sender != gmtFundMultiSig);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];
         require(gmtVal > 0); // Prevent refund if sender balance is 0
@@ -125,11 +125,7 @@ contract GMToken is StandardToken {
         
         uint256 ethVal = gmtVal.div(tokenExchangeRate);
         
-        if(!msg.sender.send(ethVal)) {
-          balances[msg.sender] += gmtVal;
-          assignedSupply = assignedSupply.add(gmtVal);
-          return false; 
-        }
+        msg.sender.transfer(ethVal);
 
         RefundSent(msg.sender, ethVal);  // Log successful refund 
     }
