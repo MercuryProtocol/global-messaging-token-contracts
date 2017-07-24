@@ -14,7 +14,7 @@ OWN_DIR = os.path.dirname(os.path.realpath(__file__))
 
 class AbstractTestContracts(TestCase):
 
-    HOMESTEAD_BLOCK = 1150000
+    HOMESTEAD_BLOCK = 1467446000
     MAX_UINT256 = (2 ** 256) - 1 # Max num256 value
 
     def __init__(self, *args, **kwargs):
@@ -23,7 +23,7 @@ class AbstractTestContracts(TestCase):
         self.c = tester.Chain()
         self.s = self.t.Chain({self.t.a1: {"balance": self.MAX_UINT256 * 3}, self.t.a2: {"balance": utils.denoms.ether * 1}})
         # self.s.block_number = self.HOMESTEAD_BLOCK
-        # tester.gas_limit = 4712388
+        tester.gas_limit = 471238899
         
 
     @staticmethod
@@ -42,14 +42,14 @@ class AbstractTestContracts(TestCase):
         abi = _solidity.compile_last_contract(path, combined='abi', extra_args=extra_args)['abi']
         return ContractTranslator(abi)
 
-    def create_contract_2(self, path, args=[]):
+    def create_contract(self, path, args=[]):
         contract_path = os.path.realpath(os.path.join(OWN_DIR, '..', 'contracts', path))
         contract_code = open(contract_path).read()
         contract = self.c.contract(contract_code, args=args, language='solidity')
         self.s.mine()
         return contract
 
-    def create_contract(self, path, params=None, libraries=None, sender=None):
+    def create_contract_old(self, path, params=None, libraries=None, sender=None):
         path, extra_args = self.get_dirs(path)
         if params:
             params = [x.address if isinstance(x, t.ABIContract) else x for x in params]

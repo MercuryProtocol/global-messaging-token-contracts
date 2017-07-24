@@ -13,7 +13,6 @@ contract GMToken is StandardToken {
     string public constant name = "Global Messaging Token";
     string public constant symbol = "GMT";
     uint256 public constant decimals = 18;
-    string public version = "1.0";
 
     /*
     *  Contract owner (Radical App International team)
@@ -75,8 +74,7 @@ contract GMToken is StandardToken {
         _;
     }
 
-    // TODO: Use a DELEGATECALL to forward data and calls??
-    // TODO: Add ownable and pausable contracts: https://github.com/iExecBlockchainComputing/rlc-token/blob/master/contracts/Ownable.sol
+    // TODO: See if we want to consider ownable and pausable contracts? https://github.com/iExecBlockchainComputing/rlc-token/blob/master/contracts/Ownable.sol
     // TODO: Evaluate code using
       // - https://github.com/melonproject/oyente
       // - https://github.com/sc-forks/solidity-coverage

@@ -31,6 +31,7 @@ library SafeMath {
     }
 }
 
+
 contract Token {
 
     /* Total amount of tokens */
@@ -74,6 +75,7 @@ contract Token {
     // @return Amount of remaining tokens allowed to spent
     function allowance(address owner, address spender) public constant returns (uint);
 }
+
 
 contract StandardToken is Token {
     /*
