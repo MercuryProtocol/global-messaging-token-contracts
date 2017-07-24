@@ -14,6 +14,9 @@ class TestContract(AbstractTestContracts):
         self.gmt_token= self.create_contract('Tokens/GMTokenAll.sol',
                                                 args=(self.eth_multisig_wallet_address, self.gmt_multisig_wallet_address))
         self.owner = self.gmt_token.owner()
+        self.gmtFund = 500000000 * (10**18)
+        self.totalSupply = 1000000000 * (10**18)
+        self.exchangeRate = 4316
 
     def test_meta_data(self):
         self.assertEqual(self.gmt_token.name().decode(), "Global Messaging Token")
@@ -21,25 +24,41 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.decimals(), 18)
 
     def test_initial_state(self):
-        self.assertEqual(self.gmt_token.totalSupply(), 1000000000 * (10**18))
-        self.assertEqual(self.gmt_token.gmtFund(), 500000000 * (10**18))
+        self.assertEqual(self.gmt_token.totalSupply(), self.totalSupply)
+        self.assertEqual(self.gmt_token.gmtFund(), self.gmtFund)
         self.assertEqual(self.gmt_token.minCap(), 100000000 * (10**18))
-        self.assertEqual(self.gmt_token.assignedSupply(), 500000000 * (10**18))
+        self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund)
         self.assertEqual(self.gmt_token.saleDuration(), 30)
+        self.assertEqual(self.gmt_token.tokenExchangeRate(), self.exchangeRate)
         self.assertEqual(self.gmt_token.startBlock(), 1467446878)
         self.assertEqual(self.gmt_token.endBlock(), 1470038878)
         self.assertEqual(self.gmt_token.stage(), 0) # 0=NotStarted
-        self.assertEqual(self.gmt_token.balanceOf(self.gmt_multisig_wallet_address), 500000000 * (10**18))
+        self.assertEqual(self.gmt_token.balanceOf(self.gmt_multisig_wallet_address), self.gmtFund)
         self.assertEqual(self.gmt_token.balanceOf(self.eth_multisig_wallet_address), 0)
+        self.assertEqual(self.gmt_token.owner(), '0x' + accounts[0].hex())
 
     def test_create_token_before_sale_starts(self):
         self.assertRaises(TransactionFailed, self.gmt_token.createTokens)
-    
-    def test_start_sale(self):
-        self.gmt_token.startSale()
-        self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
-    
+
     def test_unauthorized_start_sale(self):
         # Raises if anyone but the owner tries to start the sale
         self.assertRaises(TransactionFailed, self.gmt_token.startSale, sender=keys[3])
+        self.assertEqual(self.gmt_token.stage(), 0) # 0=NotStarted
+    
+    def test_authorized_start_sale(self):
+        self.gmt_token.startSale()
+        self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
 
+    def test_create_tokens(self):
+        self.gmt_token.startSale()
+        # Go past one week
+        self.s.block.timestamp += 1
+
+        buyer_1 = 2
+        value_1 = 10 # 10 Ether
+        buyer_1_tokens = value_1 * self.exchangeRate
+
+        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+
+        self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens)
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)

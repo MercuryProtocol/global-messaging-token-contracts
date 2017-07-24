@@ -188,7 +188,7 @@ contract GMToken is StandardToken {
     }
 
     modifier respectTimeFrame() {
-        assert((now > startBlock) && (now < endBlock));
+        assert((now >= startBlock) && (now < endBlock));
         _;
     }
 
@@ -235,8 +235,12 @@ contract GMToken is StandardToken {
         uint256 tokens = msg.value.mul(tokenExchangeRate); 
         uint256 checkedSupply = assignedSupply.add(tokens);
 
+        log1(
+          bytes32(tokens),
+          bytes32(checkedSupply)
+      );
         // Return money if reached token supply
-        assert(checkedSupply <= totalSupply); 
+        assert(checkedSupply <= totalSupply);
 
         balances[msg.sender] += tokens;
         assignedSupply = checkedSupply;

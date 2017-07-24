@@ -65,7 +65,7 @@ contract GMToken is StandardToken {
     }
 
     modifier respectTimeFrame() {
-        assert((now > startBlock) && (now < endBlock));
+        assert((now >= startBlock) && (now < endBlock));
         _;
     }
 
