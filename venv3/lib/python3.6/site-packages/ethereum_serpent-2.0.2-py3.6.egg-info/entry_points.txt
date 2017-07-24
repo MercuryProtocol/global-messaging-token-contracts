@@ -1,0 +1,3 @@
+[console_scripts]
+serpent = serpent:main
+

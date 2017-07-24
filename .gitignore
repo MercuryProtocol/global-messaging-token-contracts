@@ -1,11 +1,13 @@
 build
 node_modules
+venv3
 yarn-error.log
 
 # Logs
 logs
 *.log
 *.rdb
+**__pycache__
 
 # Runtime data
 pids
@@ -17,3 +19,6 @@ pids
 
 .DS_Store
 .env 
+
+
+

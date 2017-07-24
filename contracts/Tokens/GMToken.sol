@@ -48,7 +48,7 @@ contract GMToken is StandardToken {
         NotStarted,
         InProgress,
         Finalized,
-        Failed,
+        Failed
     }
 
     modifier onlyBy(address _account){
@@ -101,7 +101,7 @@ contract GMToken is StandardToken {
     }
 
     function startSale() onlyBy(owner) {
-        state = Stages.InProgress;
+        stage = Stages.InProgress;
     }
 
     // @notice Create `msg.value` ETH worth of GMT
