@@ -29,7 +29,7 @@ contract GMToken is StandardToken {
     /*
     *  Crowdsale parameters
     */
-    bool public crowdSaleFinalized;
+    Stages public stage;
     uint256 public startBlock;
     uint256 public endBlock;
     uint256 public assignedSupply;  // Total GMT tokens currently assigned
@@ -44,13 +44,20 @@ contract GMToken is StandardToken {
     event RefundSent(address indexed _to, uint256 _value);
     event CreateGMT(address indexed _to, uint256 _value);
 
-    modifier onlyBy(address account){
-        require(msg.sender == account);  
+    enum Stages {
+        NotStarted,
+        InProgress,
+        Finalized,
+        Failed,
+    }
+
+    modifier onlyBy(address _account){
+        require(msg.sender == _account);  
         _;
     }
 
-    function changeOwner(address newOwner) onlyBy(owner) {
-        owner = newOwner;
+    function changeOwner(address _newOwner) onlyBy(owner) {
+        owner = _newOwner;
     }
 
     modifier minCapReached() {
@@ -63,11 +70,17 @@ contract GMToken is StandardToken {
         _;
     }
 
-    modifier notFinalized() {
-        assert(!crowdSaleFinalized);
+    modifier atStage(Stages _stage) {
+        assert(stage == _stage);
         _;
     }
 
+    // TODO: Use a DELEGATECALL to forward data and calls??
+    // TODO: Add ownable and pausable contracts: https://github.com/iExecBlockchainComputing/rlc-token/blob/master/contracts/Ownable.sol
+    // TODO: Evaluate code using
+      // - https://github.com/melonproject/oyente
+      // - https://github.com/sc-forks/solidity-coverage
+      // - 
     /*
     *  Constructor
     */
@@ -76,7 +89,7 @@ contract GMToken is StandardToken {
         require(_ethFundMultiSig != 0x0);
 
         owner = msg.sender;
-        crowdSaleFinalized = false;  // Controls pre through crowdsale state
+        stage = Stages.NotStarted;  // Controls pre through crowdsale state
         ethFundMultiSig = _ethFundMultiSig;
         gmtFundMultiSig = _gmtFundMultiSig;
         startBlock = now;
@@ -87,9 +100,13 @@ contract GMToken is StandardToken {
         CreateGMT(gmtFundMultiSig, gmtFund);  // Log Radical App International fund  
     }
 
+    function startSale() onlyBy(owner) {
+        state = Stages.InProgress;
+    }
+
     // @notice Create `msg.value` ETH worth of GMT
     // TODO: make this the default function?
-    function createTokens() respectTimeFrame notFinalized payable external {
+    function createTokens() respectTimeFrame atStage(Stages.InProgress) payable external {
         assert(msg.value > 0);
 
         // Check that we're not over totals
@@ -105,14 +122,14 @@ contract GMToken is StandardToken {
     }
 
     // @notice Ends the funding period and sends the ETH to Multi-sig wallet
-    function finalize() onlyBy(owner) notFinalized minCapReached {
-        crowdSaleFinalized = true;
+    function finalize() onlyBy(owner) atStage(Stages.InProgress) minCapReached external {
+        stage = Stages.Finalized;
 
         ethFundMultiSig.transfer(this.balance);
     }
 
     // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
-    function refund() onlyBy(owner) notFinalized {
+    function refund() onlyBy(owner) atStage(Stages.InProgress) external returns (bool) {
         assert(assignedSupply < minCap);  // No refunds if we sold enough
         assert(block.number > endBlock);  // prevents refund until sale period is over
         assert(msg.sender != gmtFundMultiSig);  // Radical App International not entitled to a refund
@@ -132,6 +149,9 @@ contract GMToken is StandardToken {
           return false; 
         }
 
+        stage = Stages.Failed;
         RefundSent(msg.sender, ethVal);  // Log successful refund 
+
+        return true;
     }
 }
