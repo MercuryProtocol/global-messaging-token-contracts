@@ -32,3 +32,14 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.balanceOf(self.gmt_multisig_wallet_address), 500000000 * (10**18))
         self.assertEqual(self.gmt_token.balanceOf(self.eth_multisig_wallet_address), 0)
 
+    def test_create_token_before_sale_starts(self):
+        self.assertRaises(TransactionFailed, self.gmt_token.createTokens)
+    
+    def test_start_sale(self):
+        self.gmt_token.startSale()
+        self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
+    
+    def test_unauthorized_start_sale(self):
+        # Raises if anyone but the owner tries to start the sale
+        self.assertRaises(TransactionFailed, self.gmt_token.startSale, sender=keys[3])
+
