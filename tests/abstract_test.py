@@ -22,11 +22,7 @@ class AbstractTestContracts(TestCase):
         self.c = self.t.Chain()
         # Not setting a starting balance for account 0 and 1 because they are being used
         # as the ETH and GMT multi-sig addresses (see test_gmt_token.py)
-        self.s = self.t.Chain({
-            self.t.a2: {"balance": utils.denoms.ether * 100},
-            self.t.a3: {"balance": utils.denoms.ether * 5000},
-            self.t.a4: {"balance": utils.denoms.ether * 30000},
-            self.t.a5: {"balance": utils.denoms.ether * 70000}})
+        self.s = self.t.Chain()
         self.c.head_state.gas_limit = 10999999
         
 

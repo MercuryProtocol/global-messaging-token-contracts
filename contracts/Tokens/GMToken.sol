@@ -123,7 +123,7 @@ contract GMToken is StandardToken {
     function finalize() onlyBy(owner) atStage(Stages.InProgress) minCapReached external {
         stage = Stages.Finalized;
 
-        ethFundMultiSig.transfer(this.balance);
+        ethFundMultiSig.send(this.balance);
     }
 
     // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
