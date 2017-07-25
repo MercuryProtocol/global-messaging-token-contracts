@@ -60,7 +60,7 @@ contract GMToken is StandardToken {
     }
 
     modifier minCapReached() {
-        assert((now > endBlock) || assignedSupply >= minCap);
+        assert((now > endBlock) || ((assignedSupply - gmtFund) >= minCap));
         _;
     }
 

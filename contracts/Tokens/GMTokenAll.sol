@@ -183,7 +183,7 @@ contract GMToken is StandardToken {
     }
 
     modifier minCapReached() {
-        assert((now > endBlock) || assignedSupply >= minCap);
+        assert((now > endBlock) || ((assignedSupply - gmtFund) >= minCap));
         _;
     }
 
@@ -235,10 +235,6 @@ contract GMToken is StandardToken {
         uint256 tokens = msg.value.mul(tokenExchangeRate); 
         uint256 checkedSupply = assignedSupply.add(tokens);
 
-        log1(
-          bytes32(tokens),
-          bytes32(checkedSupply)
-      );
         // Return money if reached token supply
         assert(checkedSupply <= totalSupply);
 

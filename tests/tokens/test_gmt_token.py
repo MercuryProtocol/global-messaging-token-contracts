@@ -51,14 +51,49 @@ class TestContract(AbstractTestContracts):
 
     def test_create_tokens(self):
         self.gmt_token.startSale()
-        # Go past one week
+        # Move forward in time
         self.s.block.timestamp += 1
 
         buyer_1 = 2
-        value_1 = 10 # 10 Ether
+        value_1 = 1 * 10**18 # .1 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
 
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
 
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
+
+    def test_unauthorized_finalize_sale(self):
+        self.gmt_token.startSale()
+        # Move forward in time
+        self.s.block.timestamp += 1
+        # Raises if anyone but the owner tries to start the sale
+        self.assertRaises(TransactionFailed, self.gmt_token.finalize, sender=keys[3])
+
+    def test_invalid_finalize_sale(self):
+        # Raises if try to finalize sale when it's not in progress
+        self.assertRaises(TransactionFailed, self.gmt_token.finalize)
+
+    # def test_finalize_sale(self):
+    #     self.gmt_token.startSale()
+    #     # Move forward in time
+    #     self.s.block.timestamp += 1
+
+
+    #     buyer_1 = 2
+    #     buyer_2 = 3
+    #     buyer_3 = 4
+    #     value_1 = 90 # 10 Ether
+    #     value_2 = 3000 # 2 Ether
+    #     value_3 = 27000 # 2 Ether
+
+    #     self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+    #     self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+    #     self.gmt_token.createTokens(value=value_3, sender=keys[buyer_3])
+
+    #     print(self.gmt_token.assignedSupply())
+    #     print(self.gmt_token.assignedSupply)
+        # self.gmt_token.finalize()
+        # self.assertEqual(self.gmt_token.stage(), 2) # 2=Finalized
+        # self.assertEqual(self.gmt_token.balanceOf(self.eth_multisig_wallet_address), value_1)
