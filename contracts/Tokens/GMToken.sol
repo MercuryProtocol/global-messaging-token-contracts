@@ -129,7 +129,7 @@ contract GMToken is StandardToken {
         atStage(Stages.InProgress) 
         minCapReached 
         salePeriodCompleted
-        external 
+        external
     {
         stage = Stages.Finalized;
 

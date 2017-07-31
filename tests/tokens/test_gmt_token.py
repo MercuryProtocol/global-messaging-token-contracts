@@ -9,12 +9,16 @@ class TestContract(AbstractTestContracts):
 
     def __init__(self, *args, **kwargs):
         super(TestContract, self).__init__(*args, **kwargs)
-        self.eth_multisig_wallet_address = accounts[0]
         self.gmt_multisig_wallet_address = accounts[1]
+        self.eth_multisig_wallet_address = accounts[2]
         self.gmt_token= self.create_contract('Tokens/GMTokenAll.sol',
                                                 args=(self.eth_multisig_wallet_address,
                                                 self.gmt_multisig_wallet_address))
         self.owner = self.gmt_token.owner()
+
+        # Set multisig balances to 0 (defaults to 1 ETH)
+        self.c.head_state.set_balance(self.eth_multisig_wallet_address, 0)
+        self.c.head_state.set_balance(self.eth_multisig_wallet_address, 0)
         self.gmtFund = 500000000 * (10**18)
         self.totalSupply = 1000000000 * (10**18)
         self.exchangeRate = 4316
@@ -56,7 +60,7 @@ class TestContract(AbstractTestContracts):
         # Move forward in time
         self.s.block.timestamp += 10
 
-        buyer_1 = 2
+        buyer_1 = 3
         value_1 = 1 * 10**18 # 1 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
 
@@ -87,9 +91,9 @@ class TestContract(AbstractTestContracts):
         # Set timestamp to past sale end time to allow finalize
         self.s.block.timestamp += self.sale_duration + 10
 
-        buyer_1 = 2
-        buyer_2 = 3
-        buyer_3 = 4
+        buyer_1 = 3
+        buyer_2 = 4
+        buyer_3 = 5
         value_1 = 90 * 10**18 # 90 Ether
         value_2 = 30 * 10**18 # 30 Ether
         value_3 = 200 * 10**18 # 200 Ether
@@ -109,9 +113,9 @@ class TestContract(AbstractTestContracts):
         # Set timestamp to past sale end time to allow finalize
         self.s.block.timestamp += self.sale_duration + 10
 
-        buyer_1 = 2
-        buyer_2 = 3
-        buyer_3 = 4
+        buyer_1 = 3
+        buyer_2 = 4
+        buyer_3 = 5
         value_1 = 900 * 10**18 # 90 Ether
         value_2 = 30000 * 10**18 # 30k Ether
         value_3 = 200 * 10**18 # 200 Ether
@@ -130,13 +134,16 @@ class TestContract(AbstractTestContracts):
         # Should work when min cap is reached (i.e. 900 + 30000 + 200 >= minCap / exchangeRate)
         self.gmt_token.finalize()
         self.assertEqual(self.gmt_token.stage(), 2) # 2=Finalized
+        # Verify buyers received the appropriate token amount
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_2]), buyer_2_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_3]), buyer_3_tokens)
+        # Verify we've updated the total assigned supply of GMT appropriately
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
 
-        # TODO: figure out why this balance is 0
-        # self.assertEqual(self.gmt_token.balanceOf(self.eth_multisig_wallet_address), value_1)
+        # Verify ETH balance of eth multi-sig
+        self.assertEqual(round(self.c.head_state.get_balance(self.eth_multisig_wallet_address), -10), value_1 + value_2 + value_3)
+        
         # TODO: tests only pass after salePeriodCompleted is removed. Need to figure out 
         # why current timestamp (i.e. now) is not greater endTime
 
@@ -145,8 +152,8 @@ class TestContract(AbstractTestContracts):
         # Set timestamp to past sale end time to allow finalize
         self.s.block.timestamp += self.sale_duration + 10
 
-        buyer_1 = 2
-        buyer_2 = 3
+        buyer_1 = 3
+        buyer_2 = 4
         value_1 = 1300 * 10**18 # 1300 Ether
         value_2 = 30000 * 10**18 # 30k Ether
 
@@ -164,8 +171,8 @@ class TestContract(AbstractTestContracts):
         # Set timestamp to past sale end time to allow finalize
         self.s.block.timestamp += self.sale_duration + 10
 
-        buyer_1 = 2
-        buyer_2 = 3
+        buyer_1 = 3
+        buyer_2 = 4
         value_1 = 30 * 10**18 # 30 Ether
         value_2 = 10 * 10**18 # 10 Ether
 
@@ -183,8 +190,8 @@ class TestContract(AbstractTestContracts):
         # Set timestamp to past sale end time to allow finalize
         self.s.block.timestamp += self.sale_duration + 10
 
-        buyer_1 = 2
-        buyer_2 = 3
+        buyer_1 = 3
+        buyer_2 = 4
         value_1 = 30 * 10**18 # 30 Ether
         value_2 = 10 * 10**18 # 10 Ether
 
@@ -202,10 +209,12 @@ class TestContract(AbstractTestContracts):
     #     # Set timestamp to past sale end time to allow finalize
     #     self.s.block.timestamp += self.sale_duration + 10
 
-    #     buyer_1 = 2
-    #     buyer_2 = 3
-    #     value_1 = 30000 * 10**18 # 30k Ether
-    #     value_2 = 1000 * 10**18 # 1k Ether
+    #     buyer_1 = 3
+    #     buyer_2 = 4
+    #     value_1 = 30 * 10**18 # 30 Ether
+    #     value_2 = 10 * 10**18 # 10 Ether
+    #     buyer_1_tokens = value_1 * self.exchangeRate
+    #     buyer_2_tokens = value_2 * self.exchangeRate
 
     #     self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
     #     self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
@@ -214,5 +223,11 @@ class TestContract(AbstractTestContracts):
     #     self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
 
     #     # Contributer buyer_1 asks for refund
-    #     self.gmt_token.refund(sender=keys[buyer_1])
+    #     self.gmt_token.refund(sender=keys[buyer_1], value=0)
+
+    #     # Ensure buyer_1 is refunded
+    #     self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), 0)
+
+    #     # Updated assigned supply of GMT appropriately
+    #     self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_2_tokens)
 

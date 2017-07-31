@@ -20,8 +20,6 @@ class AbstractTestContracts(TestCase):
         super(AbstractTestContracts, self).__init__(*args, **kwargs)
         self.t = tester
         self.c = self.t.Chain()
-        # Not setting a starting balance for account 0 and 1 because they are being used
-        # as the ETH and GMT multi-sig addresses (see test_gmt_token.py)
         self.s = self.t.Chain()
         self.c.head_state.gas_limit = 10999999
         self.c.head_state.block_number = 4097906
