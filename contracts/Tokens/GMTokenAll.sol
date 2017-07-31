@@ -135,7 +135,6 @@ contract GMToken is StandardToken {
     string public constant name = "Global Messaging Token";
     string public constant symbol = "GMT";
     uint256 public constant decimals = 18;
-    string public version = "1.0";
 
     /*
     *  Contract owner (Radical App International team)
@@ -152,13 +151,13 @@ contract GMToken is StandardToken {
     *  Crowdsale parameters
     */
     Stages public stage;
-    uint256 public startBlock;
-    uint256 public endBlock;
+    uint256 public startTime;
+    uint256 public endTime;
     uint256 public assignedSupply;  // Total GMT tokens currently assigned
     uint256 public constant gmtFund = 500 * (10**6) * 10**decimals;  // 500M GMT reserved for development and user growth fund 
     uint256 public constant tokenExchangeRate = 4316;  // TODO: Units of GMT per ETH
-    uint256 public constant minCap =  100 * (10**6) * 10**decimals;  // 100M min cap for GMT tokens
-    uint256 public constant saleDuration =  30;  // 30 days sale period
+    uint256 public constant minCap = 100 * (10**6) * 10**decimals;  // 100M min cap for GMT tokens
+    uint256 public constant saleDuration = 30;  // 30 days sale period
 
     /*
     *  Events
@@ -183,12 +182,17 @@ contract GMToken is StandardToken {
     }
 
     modifier minCapReached() {
-        assert((now > endBlock) || ((assignedSupply - gmtFund) >= minCap));
+        assert(assignedSupply - gmtFund >= minCap);
         _;
     }
 
     modifier respectTimeFrame() {
-        assert((now >= startBlock) && (now < endBlock));
+        assert((now >= startTime) && (now < endTime));
+        _;
+    }
+
+    modifier salePeriodCompleted() {
+        assert(now >= endTime);
         _;
     }
 
@@ -197,8 +201,6 @@ contract GMToken is StandardToken {
         _;
     }
 
-    // TODO: Use a DELEGATECALL to forward data and calls??
-    // TODO: Add ownable and pausable contracts: https://github.com/iExecBlockchainComputing/rlc-token/blob/master/contracts/Ownable.sol
     // TODO: Evaluate code using
       // - https://github.com/melonproject/oyente
       // - https://github.com/sc-forks/solidity-coverage
@@ -214,8 +216,8 @@ contract GMToken is StandardToken {
         stage = Stages.NotStarted;  // Controls pre through crowdsale state
         ethFundMultiSig = _ethFundMultiSig;
         gmtFundMultiSig = _gmtFundMultiSig;
-        startBlock = now;
-        endBlock = now + (saleDuration * 1 days);
+        startTime = now;
+        endTime = now + (saleDuration * 1 days);
         totalSupply = 1000 * (10**6) * 10**decimals;  // 1B total GMT tokens
         balances[gmtFundMultiSig] = gmtFund;  // Deposit Radical App International share into Multi-sig
         assignedSupply = gmtFund;  // Start assigned supply with reserved GMT fund amount
@@ -236,7 +238,7 @@ contract GMToken is StandardToken {
         uint256 checkedSupply = assignedSupply.add(tokens);
 
         // Return money if reached token supply
-        assert(checkedSupply <= totalSupply);
+        assert(checkedSupply <= totalSupply); 
 
         balances[msg.sender] += tokens;
         assignedSupply = checkedSupply;
@@ -244,16 +246,21 @@ contract GMToken is StandardToken {
     }
 
     // @notice Ends the funding period and sends the ETH to Multi-sig wallet
-    function finalize() onlyBy(owner) atStage(Stages.InProgress) minCapReached external {
+    function finalize() 
+        onlyBy(owner) 
+        atStage(Stages.InProgress) 
+        minCapReached
+        salePeriodCompleted
+        external 
+    {
         stage = Stages.Finalized;
 
-        ethFundMultiSig.transfer(this.balance);
+        ethFundMultiSig.send(this.balance);
     }
 
     // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
-    function refund() onlyBy(owner) atStage(Stages.InProgress) external returns (bool) {
-        assert(assignedSupply < minCap);  // No refunds if we sold enough
-        assert(block.number > endBlock);  // prevents refund until sale period is over
+    function refund() atStage(Stages.InProgress) salePeriodCompleted external returns (bool) {
+        assert(assignedSupply - gmtFund >= minCap);  // No refunds if we sold enough
         assert(msg.sender != gmtFundMultiSig);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];

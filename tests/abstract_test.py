@@ -24,6 +24,7 @@ class AbstractTestContracts(TestCase):
         # as the ETH and GMT multi-sig addresses (see test_gmt_token.py)
         self.s = self.t.Chain()
         self.c.head_state.gas_limit = 10999999
+        self.c.head_state.block_number = 4097906
         
 
     @staticmethod
