@@ -152,17 +152,17 @@ contract GMToken is StandardToken {
         assignedSupply = assignedSupply.sub(gmtVal);
         
         uint256 ethVal = gmtVal.div(tokenExchangeRate);
-        
+
+        stage = Stages.Failed;
+        RefundSent(msg.sender, ethVal);  // Log successful refund 
+
         if(!msg.sender.send(ethVal)) {
           // revert state due to unsuccessful refund
           balances[msg.sender] += gmtVal;
           assignedSupply = assignedSupply.add(gmtVal);
           return false; 
         }
-
-        stage = Stages.Failed;
-        RefundSent(msg.sender, ethVal);  // Log successful refund 
-
+        
         return true;
     }
 }
