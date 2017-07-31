@@ -250,17 +250,22 @@ contract GMToken is StandardToken {
         onlyBy(owner) 
         atStage(Stages.InProgress) 
         minCapReached
-        salePeriodCompleted
+        // salePeriodCompleted
         external 
     {
         stage = Stages.Finalized;
 
-        ethFundMultiSig.send(this.balance);
+        ethFundMultiSig.transfer(this.balance);
     }
 
     // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
-    function refund() atStage(Stages.InProgress) salePeriodCompleted external returns (bool) {
-        assert(assignedSupply - gmtFund >= minCap);  // No refunds if we sold enough
+    function refund() 
+        atStage(Stages.InProgress)
+        // salePeriodCompleted
+        external 
+        returns (bool) 
+    {
+        assert(assignedSupply - gmtFund < minCap);  // No refunds if we sold enough
         assert(msg.sender != gmtFundMultiSig);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];

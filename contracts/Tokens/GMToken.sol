@@ -133,7 +133,7 @@ contract GMToken is StandardToken {
     {
         stage = Stages.Finalized;
 
-        ethFundMultiSig.send(this.balance);
+        ethFundMultiSig.transfer(this.balance);
     }
 
     // @notice Allows contributors to recover their ETH in the case of a failed funding campaign

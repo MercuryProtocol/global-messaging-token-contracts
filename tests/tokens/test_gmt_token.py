@@ -12,7 +12,8 @@ class TestContract(AbstractTestContracts):
         self.eth_multisig_wallet_address = accounts[0]
         self.gmt_multisig_wallet_address = accounts[1]
         self.gmt_token= self.create_contract('Tokens/GMTokenAll.sol',
-                                                args=(self.eth_multisig_wallet_address, self.gmt_multisig_wallet_address))
+                                                args=(self.eth_multisig_wallet_address,
+                                                self.gmt_multisig_wallet_address))
         self.owner = self.gmt_token.owner()
         self.gmtFund = 500000000 * (10**18)
         self.totalSupply = 1000000000 * (10**18)
@@ -108,9 +109,6 @@ class TestContract(AbstractTestContracts):
         # Set timestamp to past sale end time to allow finalize
         self.s.block.timestamp += self.sale_duration + 10
 
-        print(self.s.block.timestamp > self.gmt_token.endTime())
-        print('YO!!')
-
         buyer_1 = 2
         buyer_2 = 3
         buyer_3 = 4
@@ -135,19 +133,79 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_2]), buyer_2_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_3]), buyer_3_tokens)
+        self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
 
         # TODO: figure out why this balance is 0
         # self.assertEqual(self.gmt_token.balanceOf(self.eth_multisig_wallet_address), value_1)
+        # TODO: tests only pass after salePeriodCompleted is removed. Need to figure out 
+        # why current timestamp (i.e. now) is not greater endTime
 
-    # def test_refund_mincap_reached(self):
+    def test_refund_mincap_reached(self):
+        self.gmt_token.startSale()
+        # Set timestamp to past sale end time to allow finalize
+        self.s.block.timestamp += self.sale_duration + 10
+
+        buyer_1 = 2
+        buyer_2 = 3
+        value_1 = 1300 * 10**18 # 1300 Ether
+        value_2 = 30000 * 10**18 # 30k Ether
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
+        
+        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+
+        # Raises if contributor tried to get a refund after min cap is reached
+        self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[buyer_1])
+    
+    def test_refund_for_gmtFund(self):
+        self.gmt_token.startSale()
+        # Set timestamp to past sale end time to allow finalize
+        self.s.block.timestamp += self.sale_duration + 10
+
+        buyer_1 = 2
+        buyer_2 = 3
+        value_1 = 30 * 10**18 # 30 Ether
+        value_2 = 10 * 10**18 # 10 Ether
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
+        
+        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+
+        # Raises if gmtFund tries to get a refund
+        self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[1])
+
+    def test_refund_for_sender_balance_zero(self):
+        self.gmt_token.startSale()
+        # Set timestamp to past sale end time to allow finalize
+        self.s.block.timestamp += self.sale_duration + 10
+
+        buyer_1 = 2
+        buyer_2 = 3
+        value_1 = 30 * 10**18 # 30 Ether
+        value_2 = 10 * 10**18 # 10 Ether
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
+        
+        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+
+        # Raises if sender balance is 0
+        self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[5])
+
+    # def test_refund(self):
     #     self.gmt_token.startSale()
-    #     # Move forward in time
-    #     self.s.block.timestamp += 1
+    #     # Set timestamp to past sale end time to allow finalize
+    #     self.s.block.timestamp += self.sale_duration + 10
 
     #     buyer_1 = 2
     #     buyer_2 = 3
-    #     value_1 = 1300 * 10**18 # 1300 Ether
-    #     value_2 = 30000 * 10**18 # 30k Ether
+    #     value_1 = 30000 * 10**18 # 30k Ether
+    #     value_2 = 1000 * 10**18 # 1k Ether
 
     #     self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
     #     self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
@@ -155,5 +213,6 @@ class TestContract(AbstractTestContracts):
     #     self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
     #     self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
 
-    #     # Raises if contributor tried to get a refund after min cap is reached
-    #     self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[3])
+    #     # Contributer buyer_1 asks for refund
+    #     self.gmt_token.refund(sender=keys[buyer_1])
+
