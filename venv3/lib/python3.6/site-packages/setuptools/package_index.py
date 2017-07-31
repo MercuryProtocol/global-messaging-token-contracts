@@ -20,7 +20,7 @@ from setuptools.extern.six.moves import urllib, http_client, configparser, map
 import setuptools
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
-    require, Environment, find_distributions, safe_name, safe_version,
+    Environment, find_distributions, safe_name, safe_version,
     to_filename, Requirement, DEVELOP_DIST,
 )
 from setuptools import ssl_support
@@ -30,12 +30,12 @@ from fnmatch import translate
 from setuptools.py26compat import strip_fragment
 from setuptools.py27compat import get_all_headers
 
-EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
+EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
 PYPI_MD5 = re.compile(
-    '<a href="([^"#]+)">([^<]+)</a>\n\s+\\(<a (?:title="MD5 hash"\n\s+)'
-    'href="[^?]+\?:action=show_md5&amp;digest=([0-9a-f]{32})">md5</a>\\)'
+    '<a href="([^"#]+)">([^<]+)</a>\n\\s+\\(<a (?:title="MD5 hash"\n\\s+)'
+    'href="[^?]+\\?:action=show_md5&amp;digest=([0-9a-f]{32})">md5</a>\\)'
 )
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):', re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
@@ -48,7 +48,7 @@ __all__ = [
 _SOCKET_TIMEOUT = 15
 
 _tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
-user_agent = _tmpl.format(py_major=sys.version[:3], **globals())
+user_agent = _tmpl.format(py_major=sys.version[:3], setuptools=setuptools)
 
 
 def parse_requirement_arg(spec):
@@ -161,7 +161,7 @@ def interpret_distro_name(
     # versions in distribution archive names (sdist and bdist).
 
     parts = basename.split('-')
-    if not py_version and any(re.match('py\d\.\d$', p) for p in parts[2:]):
+    if not py_version and any(re.match(r'py\d\.\d$', p) for p in parts[2:]):
         # it is a bdist_dumb, not an sdist -- bail out
         return
 
@@ -205,7 +205,7 @@ def unique_values(func):
     return wrapper
 
 
-REL = re.compile("""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
+REL = re.compile(r"""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
 # this line is here to fix emacs' cruddy broken syntax highlighting
 
 
@@ -768,7 +768,7 @@ class PackageIndex(Environment):
                     'down, %s' %
                     (url, v.line)
                 )
-        except http_client.HTTPException as v:
+        except (http_client.HTTPException, socket.error) as v:
             if warning:
                 self.warn(warning, v)
             else:

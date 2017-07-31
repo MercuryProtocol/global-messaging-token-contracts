@@ -3,14 +3,15 @@ import operator
 import sys
 import contextlib
 import itertools
-from distutils.errors import DistutilsOptionError
+from distutils.errors import DistutilsError, DistutilsOptionError
+from distutils import log
 from unittest import TestLoader
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map, filter
 
 from pkg_resources import (resource_listdir, resource_exists, normalize_path,
-                           working_set, _namespace_packages,
+                           working_set, _namespace_packages, evaluate_marker,
                            add_activation_listener, require, EntryPoint)
 from setuptools import Command
 from setuptools.py31compat import unittest_main
@@ -66,7 +67,7 @@ class test(Command):
     user_options = [
         ('test-module=', 'm', "Run 'test_suite' in specified module"),
         ('test-suite=', 's',
-         "Test suite to run (e.g. 'some_module.test_suite')"),
+         "Run single test, case or suite (e.g. 'module.test_suite')"),
         ('test-runner=', 'r', "Test runner to use"),
     ]
 
@@ -190,9 +191,13 @@ class test(Command):
         Install the requirements indicated by self.distribution and
         return an iterable of the dists that were built.
         """
-        ir_d = dist.fetch_build_eggs(dist.install_requires or [])
+        ir_d = dist.fetch_build_eggs(dist.install_requires)
         tr_d = dist.fetch_build_eggs(dist.tests_require or [])
-        return itertools.chain(ir_d, tr_d)
+        er_d = dist.fetch_build_eggs(
+            v for k, v in dist.extras_require.items()
+            if k.startswith(':') and evaluate_marker(k[1:])
+        )
+        return itertools.chain(ir_d, tr_d, er_d)
 
     def run(self):
         installed_dists = self.install_dists(self.distribution)
@@ -225,11 +230,17 @@ class test(Command):
                         del_modules.append(name)
                 list(map(sys.modules.__delitem__, del_modules))
 
-        unittest_main(
+        exit_kwarg = {} if sys.version_info < (2, 7) else {"exit": False}
+        test = unittest_main(
             None, None, self._argv,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
+            **exit_kwarg
         )
+        if not test.result.wasSuccessful():
+            msg = 'Test failed: %s' % test.result
+            self.announce(msg, log.ERROR)
+            raise DistutilsError(msg)
 
     @property
     def _argv(self):
