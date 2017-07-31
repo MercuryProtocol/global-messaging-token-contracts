@@ -127,7 +127,7 @@ contract GMToken is StandardToken {
     }
 
     // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
-    function refund() onlyBy(owner) atStage(Stages.InProgress) external returns (bool) {
+    function refund() atStage(Stages.InProgress) external returns (bool) {
         assert(assignedSupply < minCap);  // No refunds if we sold enough
         assert(block.number > endBlock);  // prevents refund until sale period is over
         assert(msg.sender != gmtFundMultiSig);  // Radical App International not entitled to a refund

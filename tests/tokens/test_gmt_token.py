@@ -40,12 +40,12 @@ class TestContract(AbstractTestContracts):
     def test_create_token_before_sale_starts(self):
         self.assertRaises(TransactionFailed, self.gmt_token.createTokens)
 
-    def test_unauthorized_start_sale(self):
+    def test_unauthorized_start(self):
         # Raises if anyone but the owner tries to start the sale
         self.assertRaises(TransactionFailed, self.gmt_token.startSale, sender=keys[3])
         self.assertEqual(self.gmt_token.stage(), 0) # 0=NotStarted
     
-    def test_authorized_start_sale(self):
+    def test_authorized_start(self):
         self.gmt_token.startSale()
         self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
 
@@ -64,18 +64,18 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
 
-    def test_unauthorized_finalize_sale(self):
+    def test_unauthorized_finalize(self):
         self.gmt_token.startSale()
         # Move forward in time
         self.s.block.timestamp += 1
         # Raises if anyone but the owner tries to start the sale
         self.assertRaises(TransactionFailed, self.gmt_token.finalize, sender=keys[3])
 
-    def test_invalid_finalize_sale(self):
+    def test_invalid_finalize(self):
         # Raises if try to finalize sale when it's not in progress
         self.assertRaises(TransactionFailed, self.gmt_token.finalize)
 
-    def test_finalize_sale_mincap_not_reached(self):
+    def test_finalize_mincap_not_reached(self):
         self.gmt_token.startSale()
         # Move forward in time
         self.s.block.timestamp += 1
@@ -95,20 +95,19 @@ class TestContract(AbstractTestContracts):
         self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
         self.gmt_token.createTokens(value=value_3, sender=keys[buyer_3])
 
-        # Should fail when min cap is not reached (i.e. 90 + 20 + 200 < minCap / exchangeRate)
+        # Should fail when min cap is not reached (i.e. 90 + 30 + 200 < minCap / exchangeRate)
         self.assertRaises(TransactionFailed, self.gmt_token.finalize)
     
-    def test_finalize_sale(self):
+    def test_finalize(self):
         self.gmt_token.startSale()
         # Move forward in time
         self.s.block.timestamp += 1
-
 
         buyer_1 = 2
         buyer_2 = 3
         buyer_3 = 4
         value_1 = 900 * 10**18 # 90 Ether
-        value_2 = 30000 * 10**18 # 30 Ether
+        value_2 = 30000 * 10**18 # 30k Ether
         value_3 = 200 * 10**18 # 200 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         buyer_2_tokens = value_2 * self.exchangeRate
@@ -132,4 +131,21 @@ class TestContract(AbstractTestContracts):
         # TODO: figure out why this balance is 0
         # self.assertEqual(self.gmt_token.balanceOf(self.eth_multisig_wallet_address), value_1)
 
-    # TODO: Add tests for Refund function
+    def test_refund_mincap_reached(self):
+        self.gmt_token.startSale()
+        # Move forward in time
+        self.s.block.timestamp += 1
+
+        buyer_1 = 2
+        buyer_2 = 3
+        value_1 = 1300 * 10**18 # 1300 Ether
+        value_2 = 30000 * 10**18 # 30k Ether
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
+        
+        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+
+        # Raises if contributor tried to get a refund after min cap is reached
+        self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[3])
