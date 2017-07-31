@@ -29,13 +29,12 @@ contract GMToken is StandardToken {
     *  Crowdsale parameters
     */
     Stages public stage;
-    uint256 public startTime;
-    uint256 public endTime;
+    uint256 public startBlock;
+    uint256 public endBlock;
     uint256 public assignedSupply;  // Total GMT tokens currently assigned
     uint256 public constant gmtFund = 500 * (10**6) * 10**decimals;  // 500M GMT reserved for development and user growth fund 
     uint256 public constant tokenExchangeRate = 4316;  // TODO: Units of GMT per ETH
     uint256 public constant minCap = 100 * (10**6) * 10**decimals;  // 100M min cap for GMT tokens
-    uint256 public constant saleDuration = 30;  // 30 days sale period
 
     /*
     *  Events
@@ -65,12 +64,12 @@ contract GMToken is StandardToken {
     }
 
     modifier respectTimeFrame() {
-        assert((now >= startTime) && (now < endTime));
+        assert((block.number >= startBlock) && (block.number < endBlock));
         _;
     }
 
     modifier salePeriodCompleted() {
-        assert(now >= endTime);
+        assert(block.number >= endBlock);
         _;
     }
 
@@ -86,7 +85,12 @@ contract GMToken is StandardToken {
     /*
     *  Constructor
     */
-    function GMToken(address _ethFundMultiSig, address _gmtFundMultiSig) {
+    function GMToken(
+        address _ethFundMultiSig,
+        address _gmtFundMultiSig,
+        uint256 _startBlock,
+        uint256 _endBlock) 
+    {
         require(_gmtFundMultiSig != 0x0);
         require(_ethFundMultiSig != 0x0);
 
@@ -94,8 +98,8 @@ contract GMToken is StandardToken {
         stage = Stages.NotStarted;  // Controls pre through crowdsale state
         ethFundMultiSig = _ethFundMultiSig;
         gmtFundMultiSig = _gmtFundMultiSig;
-        startTime = now;
-        endTime = startTime + (saleDuration * 1 days);
+        startBlock = _startBlock;
+        endBlock = _endBlock;
         totalSupply = 1000 * (10**6) * 10**decimals;  // 1B total GMT tokens
         balances[gmtFundMultiSig] = gmtFund;  // Deposit Radical App International share into Multi-sig
         assignedSupply = gmtFund;  // Start assigned supply with reserved GMT fund amount
@@ -138,7 +142,7 @@ contract GMToken is StandardToken {
 
     // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
     function refund() atStage(Stages.InProgress) salePeriodCompleted external returns (bool) {
-        assert(assignedSupply - gmtFund >= minCap);  // No refunds if we sold enough
+        assert(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
         assert(msg.sender != gmtFundMultiSig);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];
