@@ -143,7 +143,7 @@ class TestContract(AbstractTestContracts):
 
         # Verify ETH balance of eth multi-sig
         self.assertEqual(round(self.c.head_state.get_balance(self.eth_multisig_wallet_address), -10), value_1 + value_2 + value_3)
-        
+
         # TODO: tests only pass after salePeriodCompleted is removed. Need to figure out 
         # why current timestamp (i.e. now) is not greater endTime
 
@@ -204,30 +204,33 @@ class TestContract(AbstractTestContracts):
         # Raises if sender balance is 0
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[5])
 
-    # def test_refund(self):
-    #     self.gmt_token.startSale()
-    #     # Set timestamp to past sale end time to allow finalize
-    #     self.s.block.timestamp += self.sale_duration + 10
+    def test_refund(self):
+        self.gmt_token.startSale()
+        # Set timestamp to past sale end time to allow finalize
+        self.s.block.timestamp += self.sale_duration + 10
 
-    #     buyer_1 = 3
-    #     buyer_2 = 4
-    #     value_1 = 30 * 10**18 # 30 Ether
-    #     value_2 = 10 * 10**18 # 10 Ether
-    #     buyer_1_tokens = value_1 * self.exchangeRate
-    #     buyer_2_tokens = value_2 * self.exchangeRate
+        buyer_1 = 3
+        buyer_2 = 4
+        value_1 = 30 * 10**18 # 30 Ether
+        value_2 = 10 * 10**18 # 10 Ether
+        buyer_1_tokens = value_1 * self.exchangeRate
+        buyer_2_tokens = value_2 * self.exchangeRate
 
-    #     self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
-    #     self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
         
-    #     self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
-    #     self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
 
-    #     # Contributer buyer_1 asks for refund
-    #     self.gmt_token.refund(sender=keys[buyer_1], value=0)
+        # Contributer buyer_1 asks for refund
+        self.gmt_token.refund(sender=keys[buyer_1], value=0)
 
-    #     # Ensure buyer_1 is refunded
-    #     self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), 0)
+        # Ensure buyer_1 is refunded
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), 0)
 
-    #     # Updated assigned supply of GMT appropriately
-    #     self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_2_tokens)
+        # Update assigned supply of GMT appropriately
+        self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_2_tokens)
+
+        # Move stage to failed
+        self.assertEqual(self.gmt_token.stage(), 3) # 3=Finalized
 
