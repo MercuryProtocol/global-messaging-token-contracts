@@ -56,7 +56,9 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.stage(), 0) # 0=NotStarted
     
     def test_authorized_start(self):
-        self.gmt_token.startSale()
+        # NOTE: owner is account[0] because that is what 
+        # the default sender gets set to with pyethereum when not explicitly indicated
+        self.gmt_token.startSale() 
         self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
 
     def test_create_tokens(self):
@@ -82,6 +84,7 @@ class TestContract(AbstractTestContracts):
     def test_finalize_before_endTime(self):
         self.gmt_token.startSale()
         # Raises if try to finalize before sale period is over
+        self.assertTrue(self.c.head_state.block_number < self.endBlock) 
         self.assertRaises(TransactionFailed, self.gmt_token.finalize)
 
     def test_unauthorized_finalize(self):
@@ -152,13 +155,10 @@ class TestContract(AbstractTestContracts):
         # Verify we've updated the total assigned supply of GMT appropriately
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
 
-        # Verify ETH balance of eth multi-sig
+        # Verify ETH balance of ETH wallet address
         self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3)
 
-        # TODO: tests only pass after salePeriodCompleted is removed. Need to figure out 
-        # why current timestamp (i.e. now) is not greater endTime
-
-    def test_refund_mincap_reached(self):
+    def test_refund_after_mincap_reached(self):
         self.gmt_token.startSale()
         # Move forward a few blocks to be within funding time frame
         self.c.head_state.block_number = self.startBlock + 100
@@ -177,7 +177,7 @@ class TestContract(AbstractTestContracts):
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
 
-        # Raises if contributor tried to get a refund after min cap is reached
+        # Raises if contributor tries to get a refund after min cap is reached
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[buyer_1])
     
     def test_refund_for_gmtFund(self):
@@ -199,10 +199,10 @@ class TestContract(AbstractTestContracts):
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
 
-        # Raises if gmtFund tries to get a refund
+        # Raises if gmtFund address tries to get a refund (account[1])
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[1])
 
-    def test_refund_for_sender_balance_zero(self):
+    def test_refund_when_sender_balance_zero(self):
         self.gmt_token.startSale()
         # Move forward a few blocks to be within funding time frame
         self.c.head_state.block_number = self.startBlock + 100
@@ -222,7 +222,9 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.block_number = self.endBlock + 1
 
         # Raises if sender balance is 0
-        self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[5])
+        buyer_3 = 5
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_3]), 0)
+        self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[buyer_3])
 
     def test_refund(self):
         self.gmt_token.startSale()
@@ -245,15 +247,14 @@ class TestContract(AbstractTestContracts):
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
 
-        # Contributer buyer_1 asks for refund
+        # Contributor buyer_1 asks for refund
         self.gmt_token.refund(sender=keys[buyer_1], value=0)
 
         # Ensure buyer_1 is refunded
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), 0)
 
-        # Update assigned supply of GMT appropriately
+        # Update assigned supply of GMT appropriately to account for buyer_1 refund
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_2_tokens)
 
         # Move stage to failed
         self.assertEqual(self.gmt_token.stage(), 3) # 3=Finalized
-
