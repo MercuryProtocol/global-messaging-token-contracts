@@ -138,28 +138,29 @@ contract GMToken is StandardToken {
         ethFundAddress.transfer(this.balance);
     }
 
-    // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
+    // @notice Allows contributors to recover their ETH in the case of a failed token sale
     function refund() atStage(Stages.InProgress) salePeriodCompleted external returns (bool) {
         assert(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
         assert(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];
-        require(gmtVal > 0); // Prevent refund if sender balance is 0
+        require(gmtVal > 0); // Prevent refund if sender GMT balance is 0
 
         balances[msg.sender] -= gmtVal;
-        assignedSupply = assignedSupply.sub(gmtVal);
+        assignedSupply = assignedSupply.sub(gmtVal); // Adjust assigned supply to account for refunded amount
         
-        uint256 ethVal = gmtVal.div(tokenExchangeRate);
+        uint256 ethVal = gmtVal.div(tokenExchangeRate); // Covert GMT to ETH
 
         stage = Stages.Failed;
-        RefundSent(msg.sender, ethVal);  // Log successful refund 
 
         if(!msg.sender.send(ethVal)) {
-          // revert state due to unsuccessful refund
+          // Revert state due to unsuccessful refund
           balances[msg.sender] += gmtVal;
           assignedSupply = assignedSupply.add(gmtVal);
           return false; 
         }
+        
+        RefundSent(msg.sender, ethVal);  // Log successful refund 
         
         return true;
     }

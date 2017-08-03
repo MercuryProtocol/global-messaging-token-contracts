@@ -125,6 +125,8 @@ contract StandardToken is Token {
 }
 
 
+// @title Abstract token contract - Functions to be implemented by token contracts
+// @author Preethi Kasireddy - <preethi@preethireddy.com>
 contract GMToken is StandardToken {
 
     using SafeMath for uint256;
@@ -142,21 +144,21 @@ contract GMToken is StandardToken {
     address public owner;
 
     /*
-    *  Multi-sig wallets
+    *  Hardware wallets
     */
-    address public ethFundMultiSig;  // Multi-sig address for ETH owned by Radical App International
-    address public gmtFundMultiSig;  // Multi-sig address for GMT allocated to Radical App International
+    address public ethFundAddress;  // Hardware address for ETH owned by Radical App International
+    address public gmtFundAddress;  // Hardware address for GMT allocated to Radical App International
 
     /*
     *  Crowdsale parameters
     */
     Stages public stage;
-    uint256 public startBlock;
-    uint256 public endBlock;
+    uint256 public startBlock;  // Block number when sale period begins
+    uint256 public endBlock;  // Block number when sale period ends
     uint256 public assignedSupply;  // Total GMT tokens currently assigned
     uint256 public constant gmtFund = 500 * (10**6) * 10**decimals;  // 500M GMT reserved for development and user growth fund 
     uint256 public constant tokenExchangeRate = 4316;  // TODO: Units of GMT per ETH
-    uint256 public constant minCap = 100 * (10**6) * 10**decimals;  // 100M min cap for GMT tokens
+    uint256 public constant minCap = 100 * (10**6) * 10**decimals;  // 100M min cap to be sold during sale
 
     /*
     *  Events
@@ -200,32 +202,28 @@ contract GMToken is StandardToken {
         _;
     }
 
-    // TODO: Evaluate code using
-      // - https://github.com/melonproject/oyente
-      // - https://github.com/sc-forks/solidity-coverage
-      // - 
     /*
     *  Constructor
     */
     function GMToken(
-        address _ethFundMultiSig,
-        address _gmtFundMultiSig,
+        address _ethFundAddress,
+        address _gmtFundAddress,
         uint256 _startBlock,
         uint256 _endBlock) 
     {
-        require(_gmtFundMultiSig != 0x0);
-        require(_ethFundMultiSig != 0x0);
+        require(_gmtFundAddress!= 0x0);
+        require(_ethFundAddress != 0x0);
 
-        owner = msg.sender;
-        stage = Stages.NotStarted;  // Controls pre through crowdsale state
-        ethFundMultiSig = _ethFundMultiSig;
-        gmtFundMultiSig = _gmtFundMultiSig;
+        owner = msg.sender; // Creator of contract is owner
+        stage = Stages.NotStarted; 
+        ethFundAddress = _ethFundAddress;
+        gmtFundAddress = _gmtFundAddress;
         startBlock = _startBlock;
         endBlock = _endBlock;
         totalSupply = 1000 * (10**6) * 10**decimals;  // 1B total GMT tokens
-        balances[gmtFundMultiSig] = gmtFund;  // Deposit Radical App International share into Multi-sig
-        assignedSupply = gmtFund;  // Start assigned supply with reserved GMT fund amount
-        CreateGMT(gmtFundMultiSig, gmtFund);  // Log Radical App International fund  
+        balances[gmtFundAddress] = gmtFund;  // Deposit Radical App International share into Multi-sig
+        assignedSupply = gmtFund;  // Set starting assigned supply to amount assigned for GMT fund
+        CreateGMT(gmtFundAddress, gmtFund);  // Log Radical App International fund  
     }
 
     function startSale() onlyBy(owner) {
@@ -241,7 +239,7 @@ contract GMToken is StandardToken {
         uint256 tokens = msg.value.mul(tokenExchangeRate); 
         uint256 checkedSupply = assignedSupply.add(tokens);
 
-        // Return money if reached token supply
+        // Return money if we're over total token supply
         assert(checkedSupply <= totalSupply); 
 
         balances[msg.sender] += tokens;
@@ -259,31 +257,32 @@ contract GMToken is StandardToken {
     {
         stage = Stages.Finalized;
 
-        ethFundMultiSig.transfer(this.balance);
+        ethFundAddress.transfer(this.balance);
     }
 
-    // @notice Allows contributors to recover their ETH in the case of a failed funding campaign
+    // @notice Allows contributors to recover their ETH in the case of a failed token sale
     function refund() atStage(Stages.InProgress) salePeriodCompleted external returns (bool) {
         assert(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
-        assert(msg.sender != gmtFundMultiSig);  // Radical App International not entitled to a refund
+        assert(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];
-        require(gmtVal > 0); // Prevent refund if sender balance is 0
+        require(gmtVal > 0); // Prevent refund if sender GMT balance is 0
 
         balances[msg.sender] -= gmtVal;
-        assignedSupply = assignedSupply.sub(gmtVal);
+        assignedSupply = assignedSupply.sub(gmtVal); // Adjust assigned supply to account for refunded amount
         
-        uint256 ethVal = gmtVal.div(tokenExchangeRate);
-        
+        uint256 ethVal = gmtVal.div(tokenExchangeRate); // Covert GMT to ETH
+
         stage = Stages.Failed;
-        RefundSent(msg.sender, ethVal);  // Log successful refund 
 
         if(!msg.sender.send(ethVal)) {
-          // revert state due to unsuccessful refund
+          // Revert state due to unsuccessful refund
           balances[msg.sender] += gmtVal;
           assignedSupply = assignedSupply.add(gmtVal);
           return false; 
         }
+        
+        RefundSent(msg.sender, ethVal);  // Log successful refund 
         
         return true;
     }

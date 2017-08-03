@@ -9,21 +9,21 @@ class TestContract(AbstractTestContracts):
 
     def __init__(self, *args, **kwargs):
         super(TestContract, self).__init__(*args, **kwargs)
-        self.gmt_multisig_wallet_address = accounts[1]
-        self.eth_multisig_wallet_address = accounts[2]
+        self.gmt_wallet_address = accounts[1]
+        self.eth_wallet_address = accounts[2]
         self.startBlock = 4097906
         self.saleDuration = round((30*60*60*24)/18)
         self.endBlock = self.startBlock + self.saleDuration
         self.gmt_token= self.create_contract('Tokens/GMTokenAll.sol',
-                                                args=(self.eth_multisig_wallet_address,
-                                                self.gmt_multisig_wallet_address,
+                                                args=(self.eth_wallet_address,
+                                                self.gmt_wallet_address,
                                                 self.startBlock,
                                                 self.endBlock))
         self.owner = self.gmt_token.owner()
 
         # Set multisig balances to 0 (defaults to 1 ETH)
-        self.c.head_state.set_balance(self.eth_multisig_wallet_address, 0)
-        self.c.head_state.set_balance(self.eth_multisig_wallet_address, 0)
+        self.c.head_state.set_balance(self.eth_wallet_address, 0)
+        self.c.head_state.set_balance(self.eth_wallet_address, 0)
         self.gmtFund = 500000000 * (10**18)
         self.totalSupply = 1000000000 * (10**18)
         self.exchangeRate = 4316
@@ -43,8 +43,8 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.startBlock(), self.startBlock)
         self.assertEqual(self.gmt_token.endBlock(), self.endBlock)
         self.assertEqual(self.gmt_token.stage(), 0) # 0=NotStarted
-        self.assertEqual(self.gmt_token.balanceOf(self.gmt_multisig_wallet_address), self.gmtFund)
-        self.assertEqual(self.gmt_token.balanceOf(self.eth_multisig_wallet_address), 0)
+        self.assertEqual(self.gmt_token.balanceOf(self.gmt_wallet_address), self.gmtFund)
+        self.assertEqual(self.gmt_token.balanceOf(self.eth_wallet_address), 0)
         self.assertEqual(self.gmt_token.owner(), '0x' + accounts[0].hex())
 
     def test_create_token_before_sale_starts(self):
@@ -76,6 +76,7 @@ class TestContract(AbstractTestContracts):
 
     def test_invalid_finalize(self):
         # Raises if try to finalize sale when it's not in progress
+        self.assertEqual(self.gmt_token.stage(), 0) # 0=NotStarted
         self.assertRaises(TransactionFailed, self.gmt_token.finalize)
     
     def test_finalize_before_endTime(self):
@@ -152,7 +153,7 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
 
         # Verify ETH balance of eth multi-sig
-        self.assertEqual(round(self.c.head_state.get_balance(self.eth_multisig_wallet_address), -10), value_1 + value_2 + value_3)
+        self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3)
 
         # TODO: tests only pass after salePeriodCompleted is removed. Need to figure out 
         # why current timestamp (i.e. now) is not greater endTime
