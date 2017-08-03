@@ -14,8 +14,6 @@ OWN_DIR = os.path.dirname(os.path.realpath(__file__))
 
 class AbstractTestContracts(TestCase):
 
-    MAX_UINT256 = (2 ** 256) - 1 # Max num256 value
-
     def __init__(self, *args, **kwargs):
         super(AbstractTestContracts, self).__init__(*args, **kwargs)
         self.t = tester
@@ -23,7 +21,6 @@ class AbstractTestContracts(TestCase):
         self.s = self.t.Chain()
         self.c.head_state.gas_limit = 10999999
         self.c.head_state.block_number = 4097906
-        
 
     @staticmethod
     def is_hex(s):
@@ -47,26 +44,3 @@ class AbstractTestContracts(TestCase):
         contract = self.c.contract(contract_code, args=args, language='solidity')
         self.s.mine()
         return contract
-
-    def create_contract_old(self, path, params=None, libraries=None, sender=None):
-        path, extra_args = self.get_dirs(path)
-        if params:
-            params = [x.address if isinstance(x, tester.ABIContract) else x for x in params]
-        if libraries:
-            for name, address in libraries.items():
-                if type(address) == str:
-                    if self.is_hex(address):
-                        libraries[name] = address
-                    else:
-                        libraries[name] = ContractTranslator.encode_function_call(address, 'hex')
-                elif isinstance(address, tester.ABIContract):
-                    libraries[name] = ContractTranslator.encode_function_call(address.address, 'hex')
-                else:
-                    raise ValueError
-        return self.s.abi_contract(None,
-                                   path=path,
-                                   constructor_parameters=params,
-                                   libraries=libraries,
-                                   language='solidity',
-                                   extra_args=extra_args,
-                                   sender=keys[sender if sender else 0])
