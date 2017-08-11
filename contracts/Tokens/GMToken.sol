@@ -148,7 +148,7 @@ contract GMToken is StandardToken {
         assert(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];
-        require(gmtVal > 0); // Prevent refund if sender GMT balance is 0
+        assert(gmtVal > 0); // Prevent refund if sender GMT balance is 0
 
         balances[msg.sender] -= gmtVal;
         assignedSupply = assignedSupply.sub(gmtVal); // Adjust assigned supply to account for refunded amount
