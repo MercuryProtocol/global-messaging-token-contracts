@@ -52,7 +52,8 @@ contract GMToken is StandardToken {
         NotStarted,
         InProgress,
         Finalized,
-        Failed
+        Failed,
+        Stopped
     }
 
     modifier onlyBy(address _account){
@@ -108,12 +109,17 @@ contract GMToken is StandardToken {
         CreateGMT(gmtFundAddress, gmtFund);  // Log Radical App International fund  
     }
 
+    // @notice Start sale
     function startSale() onlyBy(owner) external {
         stage = Stages.InProgress;
     }
 
+    // @notice Stop sale in case of emergency (i.e. circuit breaker)
+    function stopSale() onlyBy(owner) external {
+        stage = Stages.Stopped;
+    }
+
     // @notice Create `msg.value` ETH worth of GMT
-    // TODO: make this the default function?
     function createTokens() respectTimeFrame atStage(Stages.InProgress) payable external {
         assert(msg.value > 0);
 
