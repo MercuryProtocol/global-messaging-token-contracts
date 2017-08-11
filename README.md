@@ -7,3 +7,9 @@
 ## To run tests:
 
 `python -m unittest tests.tokens.test_gmt_token`
+
+
+## TODO: 
+- Configure hardware wallets for user growth pool, reservation contracts, and employee allocations
+- Circuit breaker?
+- 

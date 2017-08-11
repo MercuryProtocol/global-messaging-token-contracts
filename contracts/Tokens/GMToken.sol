@@ -23,9 +23,13 @@ contract GMToken is StandardToken {
 
     /*
     *  Hardware wallets
+    // TODO: Add more wallets
     */
-    address public ethFundAddress;  // Hardware address for ETH owned by Radical App International
-    address public gmtFundAddress;  // Hardware address for GMT allocated to Radical App International
+    address public ethFundAddress;  // Address for ETH owned by Radical App International
+    address public gmtFundAddress;  // Address for GMT allocated to Radical App International
+    address public userGrowthFundAddress;  // Address for GMT allocated to user growth pool
+    address public employeeAllocationAddress;  // Address for GMT allocated to employees
+    address public reservationContractsAddress;  // Address for GMT allocated to reservation contracts
 
     /*
     *  Crowdsale parameters
