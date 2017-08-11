@@ -11,5 +11,5 @@
 
 ## TODO: 
 - Configure hardware wallets for user growth pool, reservation contracts, and employee allocations
-- Circuit breaker?
+- Add tests for circuit breaker
 - 
