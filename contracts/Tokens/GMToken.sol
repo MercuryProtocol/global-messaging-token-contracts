@@ -168,4 +168,11 @@ contract GMToken is StandardToken {
         
         return true;
     }
+
+    /*
+        NOTE: We explicitly do not define a fallback function, in order to prevent 
+        receiving Ether for no reason. As noted in Solidity documentation, contracts 
+        that receive Ether directly (without a function call, i.e. using send or transfer)
+        but do not define a fallback function throw an exception, sending back the Ether (this was different before Solidity v0.4.0).
+    */
 }
