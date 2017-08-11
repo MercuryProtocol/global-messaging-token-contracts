@@ -3,7 +3,7 @@
   https://github.com/ethereum/EIPs/issues/20
 */
 
-pragma solidity ^0.4.14;
+pragma solidity 0.4.14;
 
 library SafeMath {
     function mul(uint256 a, uint256 b) internal returns (uint256) {
