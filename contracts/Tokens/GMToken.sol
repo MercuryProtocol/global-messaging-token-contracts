@@ -91,7 +91,7 @@ contract GMToken is StandardToken {
         address _ethFundAddress,
         address _gmtFundAddress,
         uint256 _startBlock,
-        uint256 _endBlock) 
+        uint256 _endBlock)
     {
         require(_gmtFundAddress!= 0x0);
         require(_ethFundAddress != 0x0);
@@ -108,7 +108,7 @@ contract GMToken is StandardToken {
         CreateGMT(gmtFundAddress, gmtFund);  // Log Radical App International fund  
     }
 
-    function startSale() onlyBy(owner) {
+    function startSale() onlyBy(owner) external {
         stage = Stages.InProgress;
     }
 
