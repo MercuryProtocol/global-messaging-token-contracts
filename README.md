@@ -12,4 +12,4 @@
 ## TODO: 
 - Configure hardware wallets for user growth pool, reservation contracts, and employee allocations
 - Add tests for circuit breaker
-- 
+- Add tests for BAT Safe
