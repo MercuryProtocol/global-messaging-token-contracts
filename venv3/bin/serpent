@@ -1,4 +1,4 @@
-#!/Users/peekay/Desktop/preethi-code/global-messaging-token/venv3/bin/python3
+#!/Users/peekay/Desktop/code/global-messaging-token/venv3/bin/python3
 # EASY-INSTALL-ENTRY-SCRIPT: 'ethereum-serpent==2.0.2','console_scripts','serpent'
 __requires__ = 'ethereum-serpent==2.0.2'
 import re

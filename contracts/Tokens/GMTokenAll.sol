@@ -3,7 +3,7 @@
   https://github.com/ethereum/EIPs/issues/20
 */
 
-pragma solidity 0.4.14;
+pragma solidity 0.4.15;
 
 library SafeMath {
     function mul(uint256 a, uint256 b) internal returns (uint256) {
@@ -146,8 +146,8 @@ contract GMToken is StandardToken {
     /*
     *  Hardware wallets
     */
-    address public ethFundAddress;  // Hardware address for ETH owned by Radical App International
-    address public gmtFundAddress;  // Hardware address for GMT allocated to Radical App International
+    address public ethFundAddress;  // Address for ETH owned by Radical App International
+    address public gmtFundAddress;  // Address for GMT allocated to Radical App International
 
     /*
     *  Crowdsale parameters
@@ -170,7 +170,8 @@ contract GMToken is StandardToken {
         NotStarted,
         InProgress,
         Finalized,
-        Failed
+        Failed,
+        Stopped
     }
 
     modifier onlyBy(address _account){
@@ -209,7 +210,7 @@ contract GMToken is StandardToken {
         address _ethFundAddress,
         address _gmtFundAddress,
         uint256 _startBlock,
-        uint256 _endBlock) 
+        uint256 _endBlock)
     {
         require(_gmtFundAddress!= 0x0);
         require(_ethFundAddress != 0x0);
@@ -226,12 +227,17 @@ contract GMToken is StandardToken {
         CreateGMT(gmtFundAddress, gmtFund);  // Log Radical App International fund  
     }
 
-    function startSale() onlyBy(owner) {
+    // @notice Start sale
+    function startSale() onlyBy(owner) external {
         stage = Stages.InProgress;
     }
 
+    // @notice Stop sale in case of emergency (i.e. circuit breaker)
+    function stopSale() onlyBy(owner) external {
+        stage = Stages.Stopped;
+    }
+
     // @notice Create `msg.value` ETH worth of GMT
-    // TODO: make this the default function?
     function createTokens() respectTimeFrame atStage(Stages.InProgress) payable external {
         assert(msg.value > 0);
 
@@ -266,7 +272,7 @@ contract GMToken is StandardToken {
         assert(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];
-        require(gmtVal > 0); // Prevent refund if sender GMT balance is 0
+        assert(gmtVal > 0); // Prevent refund if sender GMT balance is 0
 
         balances[msg.sender] -= gmtVal;
         assignedSupply = assignedSupply.sub(gmtVal); // Adjust assigned supply to account for refunded amount
@@ -286,4 +292,11 @@ contract GMToken is StandardToken {
         
         return true;
     }
+
+    /*
+        NOTE: We explicitly do not define a fallback function, in order to prevent 
+        receiving Ether for no reason. As noted in Solidity documentation, contracts 
+        that receive Ether directly (without a function call, i.e. using send or transfer)
+        but do not define a fallback function throw an exception, sending back the Ether (this was different before Solidity v0.4.0).
+    */
 }

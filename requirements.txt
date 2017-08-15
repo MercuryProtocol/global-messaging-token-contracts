@@ -1,4 +1,3 @@
-bitcoin==1.1.42
 ethereum==2.0.4
 pbkdf2==1.3
 pycparser==2.17
@@ -7,15 +6,11 @@ pyethash==0.1.27
 pysha3==1.0.2
 PyYAML==3.12
 rlp==0.5.1
-# scrypt==0.8.0
 requests==2.5.3
 click==5.1
 pytest==3.1.0
 ethjsonrpc==0.3.0
-# secp256k1==0.13.2
 
 # ethereum
 https://github.com/ethereum/serpent/tarball/develop
-# git+https://github.com/Georgi87/pyethereum.git@develop
-# git+https://github.com/Georgi87/ethjsonrpc.git@master
 
