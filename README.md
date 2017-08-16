@@ -31,3 +31,4 @@ NOTE: You'll need to have Solidity installed for tests to run. See http://solidi
 - Add tests for BAT Safe
 - Add scripts to concatenate all files into one
 - Add deployment scripts using pyethereum
+- Update to ERC223 standard
