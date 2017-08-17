@@ -15,7 +15,7 @@ class TestContract(AbstractTestContracts):
         self.startBlock = 4097906
         self.saleDuration = round((30*60*60*24)/18)
         self.endBlock = self.startBlock + self.saleDuration
-        self.gmt_token= self.create_contract('Tokens/GMTokenAll.sol',
+        self.gmt_token= self.create_contract('Tokens/GMTokenTestFile.sol',
                                                 args=(self.eth_wallet_address,
                                                 self.gmt_wallet_address,
                                                 self.startBlock,

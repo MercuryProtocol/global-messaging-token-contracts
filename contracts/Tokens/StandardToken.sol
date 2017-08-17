@@ -1,5 +1,6 @@
-pragma solidity 0.4.14;
-import 'Tokens/AbstractToken.sol';
+pragma solidity 0.4.15;
+
+import './AbstractToken.sol';
 
 /*
   Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
