@@ -139,18 +139,27 @@ class TestContract(AbstractTestContracts):
         self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
         self.gmt_token.createTokens(value=value_3, sender=keys[buyer_3])
 
+        # Verify we've updated the total assigned supply of GMT appropriately
+        self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
+
+        # Calculate the unassigned supply
+        unassignedSupply = self.gmt_token.totalSupply() - self.gmt_token.assignedSupply()
+
         # Set block number to past endBlock to allow finalize
         self.c.head_state.block_number = self.endBlock + 1
-
+        
         # Should work when min cap is reached (i.e. 900 + 30000 + 200 >= minCap / exchangeRate)
         self.gmt_token.finalize()
         self.assertEqual(self.gmt_token.stage(), 2) # 2=Finalized
+
         # Verify buyers received the appropriate token amount
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_2]), buyer_2_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_3]), buyer_3_tokens)
-        # Verify we've updated the total assigned supply of GMT appropriately
-        self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
+        
+        # Verify we've updated the total supply of GMT to account for unassigned supply
+        self.assertEqual(self.gmt_token.assignedSupply(), self.totalSupply)
+        self.assertEqual(self.gmt_token.balanceOf(self.gmt_wallet_address), self.gmtFund + unassignedSupply)
 
         # Verify ETH balance of ETH wallet address
         self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3 + starting_balance)

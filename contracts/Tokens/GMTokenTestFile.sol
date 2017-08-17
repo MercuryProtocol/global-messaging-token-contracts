@@ -266,7 +266,7 @@ contract GMToken is StandardToken {
         if (assignedSupply < totalSupply) {
             uint256 unassignedSupply = totalSupply.sub(assignedSupply);
             balances[gmtFundAddress] += unassignedSupply;
-            assignedSupply.add(unassignedSupply);
+            assignedSupply = assignedSupply.add(unassignedSupply);
         }
 
         ethFundAddress.transfer(this.balance);
