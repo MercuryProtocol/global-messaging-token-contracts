@@ -9,17 +9,9 @@ class TestContract(AbstractTestContracts):
 
     def __init__(self, *args, **kwargs):
         super(TestContract, self).__init__(*args, **kwargs)
-        # NOTE: multisig balances default to 1 ETH
+        # NOTE: balances default to 1 ETH
         self.gmt_wallet_address = accounts[1]
-        self.eth_wallet_address = accounts[2]
-        self.startBlock = 4097906
-        self.saleDuration = round((30*60*60*24)/18)
-        self.endBlock = self.startBlock + self.saleDuration
-        self.gmt_token= self.create_contract('Tokens/GMTokenTestFile.sol',
-                                                args=(self.eth_wallet_address,
-                                                self.gmt_wallet_address,
-                                                self.startBlock,
-                                                self.endBlock))
+        self.gmt_token= self.create_contract('Tokens/GMTSafeTestFile.sol', args=(self.gmt_wallet_address))
         self.owner = self.gmt_token.owner()
         self.gmtFund = 500000000 * (10**18)
         self.totalSupply = 1000000000 * (10**18)

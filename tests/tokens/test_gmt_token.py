@@ -9,7 +9,7 @@ class TestContract(AbstractTestContracts):
 
     def __init__(self, *args, **kwargs):
         super(TestContract, self).__init__(*args, **kwargs)
-        # NOTE: multisig balances default to 1 ETH
+        # NOTE: balances default to 1 ETH
         self.gmt_wallet_address = accounts[1]
         self.eth_wallet_address = accounts[2]
         self.startBlock = 4097906

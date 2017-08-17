@@ -88,9 +88,8 @@ contract GMToken is StandardToken {
         address _ethFundAddress,
         address _gmtFundAddress,
         uint256 _startBlock,
-        uint256 _endBlock)
-    {
-        require(_gmtFundAddress!= 0x0);
+        uint256 _endBlock) {
+        require(_gmtFundAddress != 0x0);
         require(_ethFundAddress != 0x0);
 
         owner = msg.sender; // Creator of contract is owner
