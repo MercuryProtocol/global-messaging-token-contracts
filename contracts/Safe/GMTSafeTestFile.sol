@@ -131,12 +131,18 @@ contract GMTSafe {
       return allocations[msg.sender];
   }
 
-  function unlock() external {
+  function unlock() external returns (bool) {
     assert(now >= unlockDate);
 
     uint256 entitled = allocations[msg.sender];
     allocations[msg.sender] = 0;
 
-    StandardToken(gmtAddress).transfer(msg.sender, entitled * 10**decimals);
+    if(!StandardToken(gmtAddress).transfer(msg.sender, entitled * 10**decimals)) {
+      // Revert state due to unsuccessful refund
+      allocations[msg.sender] += entitled;
+      return false; 
+    }
+
+    return true;
   }
 }
