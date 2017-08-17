@@ -260,6 +260,15 @@ contract GMToken is StandardToken {
     {
         stage = Stages.Finalized;
 
+        // In the case where not all 500M GMT allocated to crowdfund participants
+        // is sold, send the remaining unassigned supply to GMT fund address,
+        // which will then be used to fund the user growth pool.
+        if (assignedSupply < totalSupply) {
+            uint256 unassignedSupply = totalSupply.sub(assignedSupply);
+            balances[gmtFundAddress] += unassignedSupply;
+            assignedSupply.add(unassignedSupply);
+        }
+
         ethFundAddress.transfer(this.balance);
     }
 

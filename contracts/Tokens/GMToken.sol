@@ -144,8 +144,9 @@ contract GMToken is StandardToken {
         // is sold, send the remaining unassigned supply to GMT fund address,
         // which will then be used to fund the user growth pool.
         if (assignedSupply < totalSupply) {
-            uint256 unassignedSupply = totalSupply - assignedSupply;
+            uint256 unassignedSupply = totalSupply.sub(assignedSupply);
             balances[gmtFundAddress] += unassignedSupply;
+            assignedSupply.add(unassignedSupply);
         }
 
         ethFundAddress.transfer(this.balance);
