@@ -140,6 +140,8 @@ contract GMToken is StandardToken {
     {
         stage = Stages.Finalized;
 
+        // TODO: Send unallocated funds to GMT fund
+
         ethFundAddress.transfer(this.balance);
     }
 

@@ -23,7 +23,7 @@ class TestContract(AbstractTestContracts):
                                                 self.startBlock,
                                                 self.endBlock))
         self.gmt_safe = self.create_contract('Safe/GMTSafeTestFile.sol', args=[self.gmt_wallet_address])
-        
+        self.c.head_state.set_balance(self.gmt_safe.address, 1 * (10**18))
         self.gmt_token.startSale()
         # Move forward a few blocks to be within funding time frame
         self.c.head_state.block_number = self.startBlock + 100
@@ -36,8 +36,8 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.block_number = self.endBlock + 1
         self.gmt_token.finalize()
 
-        # Transfer 1000 GMT from GMT fund (i.e. account 1) to this GMT Safe contract
-        self.gmt_token.transfer(self.gmt_safe.address, 1000, sender=keys[1])
+        # Transfer 1M GMT from GMT fund (i.e. account 1) to this GMT Safe contract
+        self.gmt_token.transfer(self.gmt_safe.address, 1000000, sender=keys[1])
         
         self.lockedPeriod = 6 * 30 * 60 * 60 * 24 # 180 days
 
@@ -47,6 +47,7 @@ class TestContract(AbstractTestContracts):
 
     def test_unauthorized_unlock(self):
         # Raises if someone without allocations tries to unlock
+        self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 100
         self.assertRaises(TransactionFailed, self.gmt_safe.unlock, sender=keys[8])
 
     def test_unlock_before_unlock_period_ends(self):
@@ -56,8 +57,6 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_safe.unlock, sender=keys[5])
     
     def test_unlock(self):
-        # Raises if owner tries to unlock the allocations before unlock date
         self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 100
-        
         self.gmt_safe.unlock(sender=keys[5])
         # self.assertRaises(TransactionFailed, self.gmt_safe.unlock, sender=keys[0])
