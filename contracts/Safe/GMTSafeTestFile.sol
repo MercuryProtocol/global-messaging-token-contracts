@@ -119,7 +119,7 @@ contract GMTSafe {
   */
   mapping (address => uint256) allocations;
   uint256 public unlockDate;
-  address public GMTAddress;
+  address public gmtAddress;
   uint256 public constant decimals = 18;
 
   modifier onlyBy(address _account){
@@ -131,11 +131,11 @@ contract GMTSafe {
       owner = _newOwner;
   }
 
-  function GMTSafe(address _GMTAddress) {
-    require(_GMTAddress != 0x0);
+  function GMTSafe(address _gmtAddress) {
+    require(_gmtAddress != 0x0);
 
     owner = msg.sender; // Creator of contract is owner
-    GMTAddress = _GMTAddress;
+    gmtAddress = _gmtAddress;
     unlockDate = now + 6 * 30 days;
 
     // TODO: Add allocations
@@ -148,6 +148,6 @@ contract GMTSafe {
     uint256 entitled = allocations[msg.sender];
     allocations[msg.sender] = 0;
 
-    StandardToken(GMTAddress).transfer(msg.sender, entitled * 10**decimals);
+    StandardToken(gmtAddress).transfer(msg.sender, entitled * 10**decimals);
   }
 }
