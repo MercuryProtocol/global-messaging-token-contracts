@@ -72,6 +72,20 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
 
+    def test_circuit_breaker(self):
+        self.gmt_token.startSale()
+        # Move forward a few blocks to be within funding time frame
+        self.c.head_state.block_number = self.startBlock + 100
+        self.gmt_token.stopSale()
+        # Raises if try to finalize sale when it's not in progress
+        self.assertEqual(self.gmt_token.stage(), 4) # 4=Failed
+
+        buyer_1 = 3
+        value_1 = 1 * 10**18 # 1 Ether
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.assertRaises(TransactionFailed, self.gmt_token.createTokens, sender=keys[buyer_1])
+
     def test_invalid_finalize(self):
         # Raises if try to finalize sale when it's not in progress
         self.assertEqual(self.gmt_token.stage(), 0) # 0=NotStarted
@@ -156,7 +170,7 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_2]), buyer_2_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_3]), buyer_3_tokens)
-        
+
         # Verify we've updated the total supply of GMT to account for unassigned supply
         self.assertEqual(self.gmt_token.assignedSupply(), self.totalSupply)
         self.assertEqual(self.gmt_token.balanceOf(self.gmt_wallet_address), self.gmtFund + unassignedSupply)

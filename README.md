@@ -27,8 +27,7 @@ NOTE: You'll need to have Solidity installed for tests to run. See http://solidi
 
 
 ## TODO: 
-- Add tests for circuit breaker
-- Add tests for BAT Safe
+- Add tests for BAT Safe - in progress
 - Add scripts to concatenate all files into one
 - Add deployment scripts using pyethereum
-- Update to ERC223 standard
+- Update to ERC223 standard?
