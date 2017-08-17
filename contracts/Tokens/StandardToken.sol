@@ -20,8 +20,7 @@ contract StandardToken is Token {
 
     function transfer(address to, uint value) public returns (bool) {
         if (balances[msg.sender] < value)
-            // Balance too low
-            revert();
+            revert();  // Balance too low
         balances[msg.sender] -= value;
         balances[to] += value;
         Transfer(msg.sender, to, value);
@@ -30,8 +29,7 @@ contract StandardToken is Token {
 
     function transferFrom(address from, address to, uint value) public returns (bool) {
         if (balances[from] < value || allowances[from][msg.sender] < value)
-            // Balance or allowance too low
-            revert();
+            revert(); // Balance or allowance too low
         balances[to] += value;
         balances[from] -= value;
         allowances[from][msg.sender] -= value;

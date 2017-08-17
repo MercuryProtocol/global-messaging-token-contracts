@@ -6,11 +6,6 @@ import './../Tokens/StandardToken.sol';
 contract GMTSafe {
 
   /*
-    *  Contract owner (Radical App International team)
-  */
-  address public owner;
-
-  /*
     *  GMTSafe parameters
   */
   mapping (address => uint256) allocations;
@@ -18,19 +13,10 @@ contract GMTSafe {
   address public gmtAddress;
   uint256 public constant decimals = 18;
 
-  modifier onlyBy(address _account){
-      require(msg.sender == _account);  
-      _;
-  }
-
-  function changeOwner(address _newOwner) onlyBy(owner) {
-      owner = _newOwner;
-  }
 
   function GMTSafe(address _gmtAddress) {
     require(_gmtAddress != 0x0);
 
-    owner = msg.sender; // Creator of contract is owner
     gmtAddress = _gmtAddress;
     unlockDate = now + 6 * 30 days;
 
@@ -38,7 +24,7 @@ contract GMTSafe {
     allocations[0] = 0;
   }
 
-  function unlock() onlyBy(owner) external {
+  function unlock() external {
     assert(now >= unlockDate);
 
     uint256 entitled = allocations[msg.sender];

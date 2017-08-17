@@ -71,8 +71,7 @@ contract StandardToken is Token {
 
     function transfer(address to, uint value) public returns (bool) {
         if (balances[msg.sender] < value)
-            // Balance too low
-            revert();
+            revert();  // Balance too low
         balances[msg.sender] -= value;
         balances[to] += value;
         Transfer(msg.sender, to, value);
@@ -81,8 +80,7 @@ contract StandardToken is Token {
 
     function transferFrom(address from, address to, uint value) public returns (bool) {
         if (balances[from] < value || allowances[from][msg.sender] < value)
-            // Balance or allowance too low
-            revert();
+            revert(); // Balance or allowance too low
         balances[to] += value;
         balances[from] -= value;
         allowances[from][msg.sender] -= value;
@@ -107,12 +105,8 @@ contract StandardToken is Token {
 
 
 
-contract GMTSafe {
 
-  /*
-    *  Contract owner (Radical App International team)
-  */
-  address public owner;
+contract GMTSafe {
 
   /*
     *  GMTSafe parameters
@@ -122,27 +116,22 @@ contract GMTSafe {
   address public gmtAddress;
   uint256 public constant decimals = 18;
 
-  modifier onlyBy(address _account){
-      require(msg.sender == _account);  
-      _;
-  }
-
-  function changeOwner(address _newOwner) onlyBy(owner) {
-      owner = _newOwner;
-  }
 
   function GMTSafe(address _gmtAddress) {
     require(_gmtAddress != 0x0);
 
-    owner = msg.sender; // Creator of contract is owner
     gmtAddress = _gmtAddress;
     unlockDate = now + 6 * 30 days;
 
     // TODO: Add allocations
-    allocations[0] = 0;
+    allocations[0x77db2bebba79db42a978f896968f4afce746ea1f] = 100;
   }
 
-  function unlock() onlyBy(owner) external {
+  function correctAllocations() external returns (uint256) {
+      return allocations[msg.sender];
+  }
+
+  function unlock() external {
     assert(now >= unlockDate);
 
     uint256 entitled = allocations[msg.sender];
