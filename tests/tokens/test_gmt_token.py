@@ -9,6 +9,7 @@ class TestContract(AbstractTestContracts):
 
     def __init__(self, *args, **kwargs):
         super(TestContract, self).__init__(*args, **kwargs)
+        # NOTE: multisig balances default to 1 ETH
         self.gmt_wallet_address = accounts[1]
         self.eth_wallet_address = accounts[2]
         self.startBlock = 4097906
@@ -20,10 +21,6 @@ class TestContract(AbstractTestContracts):
                                                 self.startBlock,
                                                 self.endBlock))
         self.owner = self.gmt_token.owner()
-
-        # Set multisig balances to 0 (defaults to 1 ETH)
-        self.c.head_state.set_balance(self.eth_wallet_address, 0)
-        self.c.head_state.set_balance(self.eth_wallet_address, 0)
         self.gmtFund = 500000000 * (10**18)
         self.totalSupply = 1000000000 * (10**18)
         self.exchangeRate = 4316
@@ -44,7 +41,6 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.endBlock(), self.endBlock)
         self.assertEqual(self.gmt_token.stage(), 0) # 0=NotStarted
         self.assertEqual(self.gmt_token.balanceOf(self.gmt_wallet_address), self.gmtFund)
-        self.assertEqual(self.gmt_token.balanceOf(self.eth_wallet_address), 0)
         self.assertEqual(self.gmt_token.owner(), '0x' + accounts[0].hex())
 
     def test_create_token_before_sale_starts(self):
@@ -133,6 +129,7 @@ class TestContract(AbstractTestContracts):
         buyer_1_tokens = value_1 * self.exchangeRate
         buyer_2_tokens = value_2 * self.exchangeRate
         buyer_3_tokens = value_3 * self.exchangeRate
+        starting_balance = self.c.head_state.get_balance(self.eth_wallet_address)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
@@ -156,7 +153,7 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
 
         # Verify ETH balance of ETH wallet address
-        self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3)
+        self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3 + starting_balance)
 
     def test_refund_after_mincap_reached(self):
         self.gmt_token.startSale()
