@@ -28,12 +28,12 @@ contract GMTSafe {
     assert(now >= unlockDate);
 
     uint256 entitled = allocations[msg.sender];
+    assert(entitled > 0);
     allocations[msg.sender] = 0;
 
-    if(!StandardToken(gmtAddress).transfer(msg.sender, entitled * 10**decimals)) {
-      // Revert state due to unsuccessful refund
-      allocations[msg.sender] += entitled;
-      return false; 
+    if (!StandardToken(gmtAddress).transfer(msg.sender, entitled * 10**decimals)) {
+        allocations[msg.sender] += entitled; // Revert state due to unsuccessful refund
+        return false; 
     }
 
     return true;

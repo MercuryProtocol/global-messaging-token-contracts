@@ -22,12 +22,13 @@ class TestContract(AbstractTestContracts):
                                                 self.gmt_wallet_address,
                                                 self.startBlock,
                                                 self.endBlock))
-        self.gmt_safe = self.create_contract('Safe/GMTSafeTestFile.sol', args=[self.gmt_wallet_address])
+        self.gmt_safe = self.create_contract('Safe/GMTSafeTestFile.sol', args=[self.gmt_token.address])
         self.c.head_state.set_balance(self.gmt_safe.address, 1 * (10**18))
-        self.gmt_token.startSale()
-        # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        self.lockedPeriod = 6 * 30 * 60 * 60 * 24 # 180 days
 
+        # Run GMToken contract
+        self.gmt_token.startSale()
+        self.c.head_state.block_number = self.startBlock + 100
         buyer_1 = 4
         value_1 = 39200 * 10**18 # 39.2k Ether
         buyer_1_tokens = value_1 * self.exchangeRate
@@ -39,11 +40,10 @@ class TestContract(AbstractTestContracts):
         # Transfer 1M GMT from GMT fund (i.e. account 1) to this GMT Safe contract
         self.gmt_token.transfer(self.gmt_safe.address, 1000000, sender=keys[1])
         
-        self.lockedPeriod = 6 * 30 * 60 * 60 * 24 # 180 days
 
     def test_initial_state(self):
         self.assertEqual(self.gmt_safe.unlockDate(), self.c.head_state.timestamp + self.lockedPeriod)
-        self.assertEqual(self.gmt_safe.gmtAddress(), '0x' + self.gmt_wallet_address.hex())
+        self.assertEqual(self.gmt_safe.gmtAddress(), '0x' + self.gmt_token.address.hex())
 
     def test_unauthorized_unlock(self):
         # Raises if someone without allocations tries to unlock
@@ -58,5 +58,6 @@ class TestContract(AbstractTestContracts):
     
     def test_unlock(self):
         self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 100
+        # Why does this fail??
+
         self.gmt_safe.unlock(sender=keys[5])
-        # self.assertRaises(TransactionFailed, self.gmt_safe.unlock, sender=keys[0])

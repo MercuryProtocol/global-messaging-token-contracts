@@ -18,7 +18,5 @@ pids
 /.vscode
 
 .DS_Store
-.env 
-
-
-
+.env
+.pyc
