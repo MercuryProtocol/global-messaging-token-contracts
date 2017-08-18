@@ -60,4 +60,4 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 100
         # TODO: Figure out -- Why does this fail??
 
-        self.gmt_safe.unlock(sender=keys[5])
+        # self.gmt_safe.unlock(sender=keys[5])

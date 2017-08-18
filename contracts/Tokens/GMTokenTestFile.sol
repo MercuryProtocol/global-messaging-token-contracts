@@ -287,12 +287,7 @@ contract GMToken is StandardToken {
 
         stage = Stages.Failed;
 
-        if(!msg.sender.send(ethVal)) {
-          // Revert state due to unsuccessful refund
-          balances[msg.sender] += gmtVal;
-          assignedSupply = assignedSupply.add(gmtVal);
-          return false; 
-        }
+        msg.sender.transfer(ethVal);
         
         RefundSent(msg.sender, ethVal);  // Log successful refund 
         
