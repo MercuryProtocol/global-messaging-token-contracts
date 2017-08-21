@@ -29,6 +29,7 @@ NOTE: You'll need to have Solidity installed for tests to run. See http://solidi
 ## TODO: 
 - Add tests for BAT Safe (in progress)
 - Add scripts to concatenate all files into one
+    - https://github.com/BlockCatIO/solidity-flattener
 - Add deployment scripts using pyethereum
     - https://www.npmjs.com/package/solc
 - Update to ERC223 standard?
