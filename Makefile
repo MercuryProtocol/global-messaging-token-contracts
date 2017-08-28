@@ -1,6 +1,5 @@
 all: init activate clean test
 .PHONY: all
-DIR := ${CURDIR}
 
 init:
 	virtualenv -p python3 venv3
@@ -22,4 +21,10 @@ flatten-token:
 
 flatten-safe:
 	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts/ --output contracts/Safe/GMTSafeFlattened.sol contracts/Safe/GMTSafe.sol
+
+abi-token:
+	python scripts/eth_abi.py --f contracts/Tokens/GMToken.sol
+
+abi-safe:
+	python scripts/eth_abi.py --f contracts/Safe/GMTSafe.sol
 
