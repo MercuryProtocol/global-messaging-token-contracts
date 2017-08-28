@@ -1,11 +1,4 @@
-pragma solidity 0.4.15;
-
-/*
-  Abstract contract for the full ERC 20 Token standard
-  https://github.com/ethereum/EIPs/issues/20
-*/
-
-// @title Abstract token contract - Functions to be implemented by token contracts
+pragma solidity ^0.4.13;
 
 contract Token {
 
@@ -50,13 +43,6 @@ contract Token {
     // @return Amount of remaining tokens allowed to spent
     function allowance(address owner, address spender) public constant returns (uint);
 }
-
-
-
-/*
-  Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
-  See ./AbstractToken.sol for detailed descriptions.
-*/
 
 contract StandardToken is Token {
     /*
@@ -103,9 +89,6 @@ contract StandardToken is Token {
     }
 }
 
-
-
-
 contract GMTSafe {
 
   /*
@@ -124,7 +107,7 @@ contract GMTSafe {
     unlockDate = now + 6 * 30 days;
 
     // TODO: Add allocations
-    allocations[0x77db2bebba79db42a978f896968f4afce746ea1f] = 100;
+    allocations[0] = 0;
   }
 
   function unlock() external returns (bool) {
@@ -142,3 +125,4 @@ contract GMTSafe {
     return true;
   }
 }
+

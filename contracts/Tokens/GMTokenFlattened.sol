@@ -1,36 +1,4 @@
-/*
-  Abstract contract for the full ERC 20 Token standard
-  https://github.com/ethereum/EIPs/issues/20
-*/
-
-pragma solidity 0.4.15;
-
-library SafeMath {
-    function mul(uint256 a, uint256 b) internal returns (uint256) {
-      uint256 c = a * b;
-      assert(a == 0 || c / a == b);
-      return c;
-    }
-
-    function div(uint256 a, uint256 b) internal returns (uint256) {
-      assert(b > 0);
-      uint256 c = a / b;
-      assert(a == b * c + a % b);
-      return c;
-    }
-
-    function sub(uint256 a, uint256 b) internal returns (uint256) {
-      assert(b <= a);
-      return a - b;
-    }
-
-    function add(uint256 a, uint256 b) internal returns (uint256) {
-      uint256 c = a + b;
-      assert(c >= a && c >= b);
-      return c;
-    }
-}
-
+pragma solidity ^0.4.13;
 
 contract Token {
 
@@ -75,7 +43,6 @@ contract Token {
     // @return Amount of remaining tokens allowed to spent
     function allowance(address owner, address spender) public constant returns (uint);
 }
-
 
 contract StandardToken is Token {
     /*
@@ -122,8 +89,32 @@ contract StandardToken is Token {
     }
 }
 
-// @title Abstract token contract - Functions to be implemented by token contracts
-// @author Preethi Kasireddy - <preethi@preethireddy.com>
+library SafeMath {
+    function mul(uint256 a, uint256 b) internal constant returns (uint256) {
+      uint256 c = a * b;
+      assert(a == 0 || c / a == b);
+      return c;
+    }
+
+    function div(uint256 a, uint256 b) internal constant returns (uint256) {
+      assert(b > 0);
+      uint256 c = a / b;
+      assert(a == b * c + a % b);
+      return c;
+    }
+
+    function sub(uint256 a, uint256 b) internal constant returns (uint256) {
+      assert(b <= a);
+      return a - b;
+    }
+
+    function add(uint256 a, uint256 b) internal constant returns (uint256) {
+      uint256 c = a + b;
+      assert(c >= a && c >= b);
+      return c;
+    }
+}
+
 contract GMToken is StandardToken {
 
     using SafeMath for uint256;
@@ -207,9 +198,8 @@ contract GMToken is StandardToken {
         address _ethFundAddress,
         address _gmtFundAddress,
         uint256 _startBlock,
-        uint256 _endBlock)
-    {
-        require(_gmtFundAddress!= 0x0);
+        uint256 _endBlock) {
+        require(_gmtFundAddress != 0x0);
         require(_ethFundAddress != 0x0);
 
         owner = msg.sender; // Creator of contract is owner
@@ -301,3 +291,4 @@ contract GMToken is StandardToken {
         but do not define a fallback function throw an exception, sending back the Ether (this was different before Solidity v0.4.0).
     */
 }
+

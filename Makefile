@@ -1,5 +1,6 @@
 all: init activate clean test
 .PHONY: all
+DIR := ${CURDIR}
 
 init:
 	virtualenv -p python3 venv3
@@ -16,5 +17,9 @@ test:
 	python -m unittest tests.tokens.test_gmt_token
 	python -m unittest tests.safe.test_gmt_safe
 
+flatten-token:
+	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts/ --output contracts/Tokens/GMTokenFlattened.sol contracts/Tokens/GMToken.sol
 
+flatten-safe:
+	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts/ --output contracts/Safe/GMTSafeFlattened.sol contracts/Safe/GMTSafe.sol
 

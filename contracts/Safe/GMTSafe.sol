@@ -1,6 +1,6 @@
 pragma solidity 0.4.15;
 
-import './../Tokens/StandardToken.sol';
+import 'contracts/Tokens/StandardToken.sol';
 
 // Need to deposit X number of GMT here
 contract GMTSafe {

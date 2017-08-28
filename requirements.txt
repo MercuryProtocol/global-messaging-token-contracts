@@ -11,6 +11,7 @@ click==5.1
 pytest==3.1.0
 ethjsonrpc==0.3.0
 web3==3.11.0
+solidity-flattener
 
 # ethereum
 https://github.com/ethereum/serpent/tarball/develop

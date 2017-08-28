@@ -1,7 +1,7 @@
 pragma solidity 0.4.15;
 
 import './StandardToken.sol';
-import './../Utils/SafeMath.sol';
+import 'contracts/Utils/SafeMath.sol';
 
 // @title Abstract token contract - Functions to be implemented by token contracts
 // @author Preethi Kasireddy - <preethi@preethireddy.com>
