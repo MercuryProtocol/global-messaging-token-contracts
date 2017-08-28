@@ -71,7 +71,7 @@ class EthABI:
 
 @click.command()
 @click.option('--f', help='Path to contract')
-@click.option('--contract-dir', default="contracts", help='Path to contract directory')
+@click.option('--contract-dir', default="contracts", help='Path to contracts directory')
 @click.option('--abi-dir', default="abi", help='Path to abi directory')
 def setup(f, contract_dir, abi_dir):
     eth_abi = EthABI(f, contract_dir, abi_dir)
