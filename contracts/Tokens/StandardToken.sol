@@ -1,6 +1,6 @@
 pragma solidity 0.4.15;
 
-import './AbstractToken.sol';
+import 'contracts/Tokens/AbstractToken.sol';
 
 /*
   Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
