@@ -2,7 +2,7 @@ from web3 import Web3, KeepAliveRPCProvider, IPCProvider
 from ethereum.abi import ContractTranslator
 from ethereum.transactions import Transaction
 from ethereum.utils import privtoaddr
-from ethereum import _solidity
+from ethereum.tools import _solidity
 import click
 import time
 import json
@@ -64,8 +64,10 @@ class EthDeploy:
 
         self.log('Instructions are sent from address: {}'.format(self._from))
 
-        balance = self.web3.eth.getBalance(self._from)
-        self.log('Address balance: {} Ether / {} Wei'.format(balance/10.0**18, balance))
+        balance_hex = self.web3.eth.getBalance(self._from)
+        balance = self.hex2int(balance_hex)
+
+        self.log('Address balance: {} Ether / {} Wei'.format(balance/10**18, balance))
 
     def is_address(self, string):
         return len(self.add_0x(string)) == 42
@@ -120,7 +122,10 @@ class EthDeploy:
         absolute_path = self.contract_dir if self.contract_dir.startswith('/') else '{}/{}'.format(os.getcwd(),
                                                                                                    self.contract_dir)
         sub_dirs = [x[0] for x in os.walk(absolute_path)]
-        extra_args = ' '.join(['{}={}'.format(d.split('/')[-1], d) for d in sub_dirs])
+        contract_sub_dirs = ' '.join((['{}={}'.format(d.split('/')[-1], d) for d in sub_dirs]))
+        main_contracts_dir = ''.join(('contracts=', '{}/{}'.format(os.getcwd(), self.contract_dir)))
+        extra_args = ' '.join((contract_sub_dirs, main_contracts_dir))
+
         # Compile code
         combined = self.solidity.combined(code, path=path, extra_args=extra_args)
         bytecode = combined[-1][1]['bin_hex']

@@ -1,0 +1,13 @@
+[
+  {
+    "type": "deployment",
+    "file": "Tokens/GMToken.sol",
+    "label": "GMT_TOKEN",
+    "params": [
+        "99735e295a2c9cdc9ed7136c8d0d639360dbe9f6",
+        "f91aa125f9c13d71f1bd1ec79b4059d6e3ad5d2b",
+        796416,
+        797000
+      ]
+  }
+]
