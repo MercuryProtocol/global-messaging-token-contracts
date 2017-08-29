@@ -185,7 +185,9 @@ class EthDeploy:
                 tx_response = self.web3.eth.sendTransaction(tx)
         
         # Generate transaction receipt
-        transaction_receipt = self.web3.eth.getTransactionReceipt(tx_response)
+        # Needs to hold before transaction receipt is registered
+        time.sleep(30)
+        transaction_receipt = self.get_transaction_receipt(tx_response)
 
         contract_address = transaction_receipt['contractAddress']
         self.references[label] = contract_address
