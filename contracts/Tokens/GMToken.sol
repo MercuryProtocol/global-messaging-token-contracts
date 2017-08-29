@@ -3,8 +3,9 @@ pragma solidity 0.4.15;
 import 'contracts/Tokens/StandardToken.sol';
 import 'contracts/Utils/SafeMath.sol';
 
-// @title Abstract token contract - Functions to be implemented by token contracts
+// @title GMT Token - Main token sale contract
 // @author Preethi Kasireddy - <preethi@preethireddy.com>
+
 contract GMToken is StandardToken {
 
     using SafeMath for uint256;

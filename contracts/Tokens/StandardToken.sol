@@ -7,16 +7,18 @@ import 'contracts/Tokens/AbstractToken.sol';
   See ./AbstractToken.sol for detailed descriptions.
 */
 
+// @title Standard token contract - Standard token interface implementation
+
 contract StandardToken is Token {
     /*
      *  Storage
-     */
+    */
     mapping (address => uint) balances;
     mapping (address => mapping (address => uint)) allowances;
 
     /*
      *  Public functions
-     */
+    */
 
     function transfer(address to, uint value) public returns (bool) {
         if (balances[msg.sender] < value)
