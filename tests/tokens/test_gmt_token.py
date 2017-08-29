@@ -177,6 +177,30 @@ class TestContract(AbstractTestContracts):
 
         # Verify ETH balance of ETH wallet address
         self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3 + starting_balance)
+    
+    def test_refund_while_sale_in_progress(self):
+        self.gmt_token.startSale()
+        # Move forward a few blocks to be within funding time frame
+        self.c.head_state.block_number = self.startBlock + 100
+
+        buyer_1 = 3
+        buyer_2 = 4
+        value_1 = 30 * 10**18 # 30 Ether
+        value_2 = 10 * 10**18 # 10 Ether
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
+        
+        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+
+        # Set block number to past endBlock to allow refund
+        self.c.head_state.block_number = self.endBlock + 1
+
+        self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
+
+        # Raises if contributor tries to get a refund after min cap is reached
+        self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[buyer_1])
 
     def test_refund_after_mincap_reached(self):
         self.gmt_token.startSale()
@@ -196,6 +220,11 @@ class TestContract(AbstractTestContracts):
 
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
+
+        # Owner needs to set sale to failed state to allow refunds to process
+        self.gmt_token.setFailedState()
+
+        self.assertEqual(self.gmt_token.stage(), 3) # 3=Failed
 
         # Raises if contributor tries to get a refund after min cap is reached
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[buyer_1])
@@ -219,6 +248,11 @@ class TestContract(AbstractTestContracts):
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
 
+        # Owner needs to set sale to failed state to allow refunds to process
+        self.gmt_token.setFailedState()
+
+        self.assertEqual(self.gmt_token.stage(), 3) # 3=Failed
+
         # Raises if gmtFund address tries to get a refund (account[1])
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[1])
 
@@ -240,6 +274,11 @@ class TestContract(AbstractTestContracts):
 
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
+
+        # Owner needs to set sale to failed state to allow refunds to process
+        self.gmt_token.setFailedState()
+
+        self.assertEqual(self.gmt_token.stage(), 3) # 3=Failed
 
         # Raises if sender balance is 0
         buyer_3 = 5
@@ -266,6 +305,11 @@ class TestContract(AbstractTestContracts):
 
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
+
+        # Owner needs to set sale to failed state to allow refunds to process
+        self.gmt_token.setFailedState()
+
+        self.assertEqual(self.gmt_token.stage(), 3) # 3=Failed
 
         # Contributor buyer_1 asks for refund
         self.gmt_token.refund(sender=keys[buyer_1], value=0)

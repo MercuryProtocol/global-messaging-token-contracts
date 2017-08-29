@@ -17,10 +17,10 @@ test:
 	python -m unittest tests.safe.test_gmt_safe
 
 flatten-token:
-	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts/ --output contracts/Tokens/GMTokenFlattened.sol contracts/Tokens/GMToken.sol
+	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts --output contracts/Tokens/GMTokenFlattened.sol contracts/Tokens/GMToken.sol
 
 flatten-safe:
-	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts/ --output contracts/Safe/GMTSafeFlattened.sol contracts/Safe/GMTSafe.sol
+	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts --output contracts/Safe/GMTSafeFlattened.sol contracts/Safe/GMTSafe.sol
 
 abi-token:
 	python scripts/eth_abi_creator.py --f contracts/Tokens/GMToken.sol

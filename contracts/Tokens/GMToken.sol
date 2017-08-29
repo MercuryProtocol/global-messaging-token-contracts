@@ -115,6 +115,11 @@ contract GMToken is StandardToken {
         stage = Stages.Stopped;
     }
 
+    // @notice Set sale to failed state
+    function setFailedState() onlyBy(owner) external {
+        stage = Stages.Failed;
+    }
+
     // @notice Create `msg.value` ETH worth of GMT
     function createTokens() respectTimeFrame atStage(Stages.InProgress) payable external {
         assert(msg.value > 0);
@@ -154,7 +159,7 @@ contract GMToken is StandardToken {
     }
 
     // @notice Allows contributors to recover their ETH in the case of a failed token sale
-    function refund() atStage(Stages.InProgress) salePeriodCompleted external returns (bool) {
+    function refund() atStage(Stages.Failed) salePeriodCompleted external returns (bool) {
         assert(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
         assert(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
 
@@ -165,8 +170,6 @@ contract GMToken is StandardToken {
         assignedSupply = assignedSupply.sub(gmtVal); // Adjust assigned supply to account for refunded amount
         
         uint256 ethVal = gmtVal.div(tokenExchangeRate); // Covert GMT to ETH
-
-        stage = Stages.Failed;
 
         msg.sender.transfer(ethVal);
         
