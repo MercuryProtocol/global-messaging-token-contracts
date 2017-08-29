@@ -28,3 +28,5 @@ abi-token:
 abi-safe:
 	python scripts/eth_abi_creator.py --f contracts/Safe/GMTSafe.sol
 
+deploy-contracts:
+	python scripts/eth_deploy.py --f scripts/tokenSaleConfig.json
