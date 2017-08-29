@@ -320,5 +320,11 @@ class TestContract(AbstractTestContracts):
         # Update assigned supply of GMT appropriately to account for buyer_1 refund
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_2_tokens)
 
-        # Move stage to failed
-        self.assertEqual(self.gmt_token.stage(), 3) # 3=Finalized
+        # Contributor buyer_2 asks for refund
+        self.gmt_token.refund(sender=keys[buyer_2], value=0)
+
+        # Ensure buyer_1 is refunded
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_2]), 0)
+
+        # Update assigned supply of GMT appropriately to account for buyer_1 & buyer_2 refund
+        self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund)
