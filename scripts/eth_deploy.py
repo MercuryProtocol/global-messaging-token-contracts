@@ -96,13 +96,30 @@ class EthDeploy:
         return self.add_0x(string) if self.is_address(string) else string
 
     def log_transaction_receipt(self, transaction_receipt):
+        block_number = transaction_receipt['blockNumber']
+        transaction_hash = transaction_receipt['transactionHash']
         gas_used = transaction_receipt['gasUsed']
+        block_hash = transaction_receipt['blockHash']
+        contract_address = transaction_receipt['contractAddress']
+        cumulative_gas_used = transaction_receipt['cumulativeGasUsed']
+
         self.total_gas += gas_used
-        self.log('Transaction receipt: {} block number, {} gas used, {} cumulative gas used'.format(
-            transaction_receipt['blockNumber'],
-            gas_used,
-            transaction_receipt['cumulativeGasUsed']
-        ))
+
+        log_output = """Transaction receipt::
+                        Block number: {}
+                        Transaction hash: {}
+                        Gas used: {}
+                        Block hash: {}
+                        Contract address: {}
+                        Cumulative gas used: {} """.format(
+                        block_number,
+                        transaction_hash,
+                        gas_used,
+                        block_hash,
+                        contract_address,
+                        cumulative_gas_used)
+
+        self.log(log_output)
 
     def get_transaction_receipt(self, transaction_hash):
         return self.web3.eth.getTransactionReceipt(transaction_hash)
@@ -155,7 +172,7 @@ class EthDeploy:
             params = [self.replace_references(p) for p in params]
             bytecode += translator.encode_constructor_arguments(params).hex()
 
-        # Deploy contract
+        # Set up contract creation transaction
         self.log('Deployment transaction for {} sent'.format(label if label else 'unknown'))
         tx_response = None
         tx = {'from':self._from, 
