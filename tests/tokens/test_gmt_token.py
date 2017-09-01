@@ -20,10 +20,11 @@ class TestContract(AbstractTestContracts):
                                                 self.gmt_wallet_address,
                                                 self.startBlock,
                                                 self.endBlock))
+        self.exchangeRate = 4316
         self.owner = self.gmt_token.owner()
         self.gmtFund = 500000000 * (10**18)
         self.totalSupply = 1000000000 * (10**18)
-        self.exchangeRate = 4316
+        self.m = 4316
         
 
     def test_meta_data(self):
@@ -56,6 +57,24 @@ class TestContract(AbstractTestContracts):
         # the default sender gets set to with pyethereum when not explicitly indicated
         self.gmt_token.startSale() 
         self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
+
+    def test_create_tokens_more_than_total_supply(self):
+        self.gmt_token.startSale()
+        # Move forward a few blocks to be within funding time frame
+        self.c.head_state.block_number = self.startBlock + 100
+
+        buyer_1 = 3
+        value_1 = 100000 * 10**18 # 100K Ether
+        buyer_2 = 4
+        value_2_incorrect = 20000 * 10**18 # 20K Ether
+
+        buyer_1_tokens = value_1 * self.exchangeRate
+        buyer_2_tokens_too_many = value_2_incorrect * self.exchangeRate
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.c.head_state.set_balance(accounts[buyer_2], value_2_incorrect * 2)
+        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+        self.assertRaises(TransactionFailed, self.gmt_token.createTokens, value=value_2_incorrect, sender=keys[3])
 
     def test_create_tokens(self):
         self.gmt_token.startSale()
