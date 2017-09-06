@@ -23,12 +23,13 @@ logger.addHandler(ch)
 
 class Transactions_Handler:
 
-    def __init__(self, account=None, private_key_path=None, protocol="http", host="localhost", port=8545, gas=4000000, gas_price=20000000000):
+    def __init__(self, protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
         # Establish rpc connection
         self.web3 = Web3(KeepAliveRPCProvider(host=host, port=port))
         self.solidity = _solidity.solc_wrapper()
         self._from = None
         self.private_key = None
+        self.contract_addr = contract_addr
 
         # Set sending account
         if account:
@@ -126,6 +127,18 @@ class Transactions_Handler:
         return self.hex2int(self.strip_0x(transaction_count))
 
 
-  
+@click.command()
+@click.option('--protocol', default="http", help='Ethereum node protocol')
+@click.option('--host', default="localhost", help='Ethereum node host')
+@click.option('--port', default='8545', help='Ethereum node port')
+@click.option('--gas', default=4000000, help='Transaction gas')
+@click.option('--gas-price', default=20000000000, help='Transaction gas price')
+@click.option('--contract-address', help='Address of contract to interact with')
+@click.option('--account', help='Default account used as from parameter')
+@click.option('--private-key-path', help='Path to private key')
+def setup(f, protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
+    transactions_handler = Transactions_Handler(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path)
+    ## TODO: test out default function
+    
 if __name__ == '__main__':
-  transactions_handler = Transactions_Handler()
+  setup()
