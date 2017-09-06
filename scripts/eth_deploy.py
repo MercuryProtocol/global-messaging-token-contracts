@@ -95,6 +95,13 @@ class EthDeploy:
     def format_reference(self, string):
         return self.add_0x(string) if self.is_address(string) else string
 
+    def write_deployed_abi(self, contract_address, abi):
+      data = {}
+      fn = os.path.join(os.path.dirname(__file__), 'deployed_abis.json')
+      with open(fn, 'w') as f:
+        data[contract_address] = abi
+        json.dump(data, f)
+
     def log_transaction_receipt(self, transaction_receipt):
         block_number = transaction_receipt['blockNumber']
         transaction_hash = transaction_receipt['transactionHash']
@@ -209,8 +216,11 @@ class EthDeploy:
         contract_address = transaction_receipt['contractAddress']
         self.references[label] = contract_address
         self.abis[contract_address] = abi
+        self.write_deployed_abi(contract_address, abi)
+        self.log('Contract abi: {}'.format(abi))
         self.log('Contract {} created at address {}'.format(label if label else 'unknown',
                                                             self.add_0x(contract_address)))
+
         self.log_transaction_receipt(transaction_receipt)
 
     def process(self, f):

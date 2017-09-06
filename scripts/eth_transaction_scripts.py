@@ -3,13 +3,13 @@ from ethereum.abi import ContractTranslator
 from ethereum.transactions import Transaction
 from ethereum.utils import privtoaddr
 from ethereum.tools import _solidity
+import eth_deploy
 import click
 import time
 import json
 import rlp
 import logging
 import os
-
 
 # create logger
 logger = logging.getLogger('DEPLOY')
@@ -86,6 +86,19 @@ class Transactions_Handler:
 
     def format_reference(self, string):
         return self.add_0x(string) if self.is_address(string) else string
+    
+    def encode_parameters(self, typesArray, parameters):
+        return self.web3.eth.abi.encodeParameters(typesArray, parameters)
+    
+    def get_code(self, contractAddress):
+      if contractAddress:
+        return self.web3.eth.getCode(contractAddress)
+      else:
+        default_address = list(self.abis.keys())[0]
+        return self.web3.eth.getCode(self.abis[default_address]) if default_address else None
+
+    # def send_transaction(self, typesArray, parameters):
+    #     return self.web3.eth.abi.encodeParameters(typesArray, parameters)
 
     def log_transaction_receipt(self, transaction_receipt):
         block_number = transaction_receipt['blockNumber']
@@ -139,6 +152,6 @@ class Transactions_Handler:
 def setup(f, protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
     transactions_handler = Transactions_Handler(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path)
     ## TODO: test out default function
-    
-if __name__ == '__main__':
-  setup()
+
+# if __name__ == '__main__':
+#   setup()
