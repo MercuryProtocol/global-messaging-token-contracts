@@ -31,3 +31,4 @@ NOTE: You'll need to have Solidity installed for tests to run. See http://solidi
 - Add transaction processing scripts
 - Update to ERC223 standard?
 - Add README for audits
+- Add Solium (https://github.com/duaraghav8/Solium)
