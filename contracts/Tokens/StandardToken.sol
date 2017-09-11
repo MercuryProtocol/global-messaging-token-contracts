@@ -7,7 +7,7 @@ import 'contracts/Tokens/AbstractToken.sol';
   See ./AbstractToken.sol for detailed descriptions.
 */
 
-// @title Standard token contract - Standard token interface implementation
+/// @title Standard token contract - Standard token interface implementation
 
 contract StandardToken is Token {
     /*

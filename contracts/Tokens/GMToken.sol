@@ -3,8 +3,8 @@ pragma solidity 0.4.15;
 import 'contracts/Tokens/StandardToken.sol';
 import 'contracts/Utils/SafeMath.sol';
 
-// @title GMT Token - Main token sale contract
-// @author Preethi Kasireddy - <preethi@preethireddy.com>
+/// @title GMT Token - Main token sale contract
+/// @author Preethi Kasireddy - <preethi@preethireddy.com>
 
 contract GMToken is StandardToken {
 
@@ -105,22 +105,26 @@ contract GMToken is StandardToken {
         CreateGMT(gmtFundAddress, gmtFund);  // Log Radical App International fund  
     }
 
-    // @notice Start sale
+    /// @notice Start sale
+    /// @dev Only allowed to be called by the owner
     function startSale() onlyBy(owner) external {
         stage = Stages.InProgress;
     }
 
-    // @notice Stop sale in case of emergency (i.e. circuit breaker)
+    /// @notice Stop sale in case of emergency (i.e. circuit breaker)
+    /// @dev Only allowed to be called by the owner
     function stopSale() onlyBy(owner) external {
         stage = Stages.Stopped;
     }
 
-    // @notice Set sale to failed state
+    /// @notice Set sale to failed state
+    /// @dev Only allowed to be called by the owner
     function setFailedState() onlyBy(owner) external {
         stage = Stages.Failed;
     }
 
-    // @notice Create `msg.value` ETH worth of GMT
+    /// @notice Create `msg.value` ETH worth of GMT
+    /// @dev Only allowed to be called within the timeframe of the sale period
     function createTokens() respectTimeFrame atStage(Stages.InProgress) payable external {
         assert(msg.value > 0);
 
@@ -136,7 +140,8 @@ contract GMToken is StandardToken {
         CreateGMT(msg.sender, tokens);  // Logs token creation for UI purposes
     }
 
-    // @notice Ends the funding period and sends the ETH to Multi-sig wallet
+    /// @notice Ends the funding period and sends the ETH to Multi-sig wallet
+    /// @dev Only allowed to be called by the owner once sale period is over and the min cap is reached
     function finalize() 
         onlyBy(owner) 
         atStage(Stages.InProgress) 
@@ -158,7 +163,8 @@ contract GMToken is StandardToken {
         ethFundAddress.transfer(this.balance);
     }
 
-    // @notice Allows contributors to recover their ETH in the case of a failed token sale
+    /// @notice Allows contributors to recover their ETH in the case of a failed token sale
+    /// @dev Only allowed to be called once sale period is over IF the min cap is not reached
     function refund() atStage(Stages.Failed) salePeriodCompleted external returns (bool) {
         assert(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
         assert(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
