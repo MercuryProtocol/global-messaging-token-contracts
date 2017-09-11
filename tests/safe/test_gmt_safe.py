@@ -39,12 +39,13 @@ class TestContract(AbstractTestContracts):
         self.gmt_token.finalize()
 
         # Transfer 10M GMT from GMT fund (i.e. account 1) to this GMT Safe contract
-        self.gmt_token.transfer(self.gmt_safe.address, 10000000, sender=keys[1])
+        self.total_allocations = 10000000 * 10**18
+        self.gmt_token.transfer(self.gmt_safe.address, self.total_allocations, sender=keys[1])
 
     def test_initial_state(self):
         self.assertEqual(self.gmt_safe.unlockDate(), self.c.head_state.timestamp + self.lockedPeriod)
         self.assertEqual(self.gmt_safe.gmtAddress(), '0x' + self.gmt_token.address.hex())
-        self.assertEqual(self.gmt_token.balanceOf(self.gmt_safe.address), 10000000)
+        self.assertEqual(self.gmt_token.balanceOf(self.gmt_safe.address), self.total_allocations)
 
     def test_unauthorized_unlock(self):
         # Raises if someone without allocations tries to unlock
@@ -59,6 +60,7 @@ class TestContract(AbstractTestContracts):
     
     def test_unlock(self):
         self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 100
-        # TODO: Figure out -- Why does this fail??
 
         self.gmt_safe.unlock(sender=keys[5])
+        # Check that the recipient has 7000 tokens as per the allocations (see GMTSafeFlattened.sol)
+        self.assertEqual(self.gmt_token.balanceOf(self.test_allocation_account), 7000 * 10**18)
