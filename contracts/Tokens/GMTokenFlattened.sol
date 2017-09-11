@@ -211,7 +211,10 @@ contract GMToken is StandardToken {
         totalSupply = 1000 * (10**6) * 10**decimals;  // 1B total GMT tokens
         balances[gmtFundAddress] = gmtFund;  // Deposit Radical App International share into Multi-sig
         assignedSupply = gmtFund;  // Set starting assigned supply to amount assigned for GMT fund
-        CreateGMT(gmtFundAddress, gmtFund);  // Log Radical App International fund  
+        CreateGMT(gmtFundAddress, gmtFund);  // Log Radical App International fund
+        // As per ERC20 spec, a token contract which creates new tokens SHOULD trigger a Transfer event with the _from address
+        // set to 0x0 when tokens are created (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md)
+        Transfer(0x0, gmtFundAddress, gmtFund);
     }
 
     /// @notice Start sale
@@ -247,6 +250,9 @@ contract GMToken is StandardToken {
         balances[msg.sender] += tokens;
         assignedSupply = checkedSupply;
         CreateGMT(msg.sender, tokens);  // Logs token creation for UI purposes
+        // As per ERC20 spec, a token contract which creates new tokens SHOULD trigger a Transfer event with the _from address
+        // set to 0x0 when tokens are created (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md)
+        Transfer(0x0, msg.sender, tokens);
     }
 
     /// @notice Ends the funding period and sends the ETH to Multi-sig wallet

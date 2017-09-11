@@ -1,6 +1,6 @@
 from ..abstract_test import AbstractTestContracts, accounts, keys, TransactionFailed
 from ethereum.tools import tester
-from ethereum.utils import privtoaddr, sha3, to_string, encode_hex
+from ethereum.utils import privtoaddr, sha3, to_string, encode_hex, checksum_encode
 
 class TestContract(AbstractTestContracts):
     """
@@ -13,6 +13,7 @@ class TestContract(AbstractTestContracts):
         self.gmt_wallet_address = accounts[1]
         self.eth_wallet_address = accounts[2]
         self.test_allocation_account = accounts[5]
+        self.test_allocation_account_checksum_encoded = checksum_encode(self.test_allocation_account)
         self.startBlock = 4097906
         self.saleDuration = round((30*60*60*24)/18)
         self.endBlock = self.startBlock + self.saleDuration
@@ -37,13 +38,13 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.block_number = self.endBlock + 1
         self.gmt_token.finalize()
 
-        # Transfer 1M GMT from GMT fund (i.e. account 1) to this GMT Safe contract
-        self.gmt_token.transfer(self.gmt_safe.address, 1000000, sender=keys[1])
-        
+        # Transfer 10M GMT from GMT fund (i.e. account 1) to this GMT Safe contract
+        self.gmt_token.transfer(self.gmt_safe.address, 10000000, sender=keys[1])
 
     def test_initial_state(self):
         self.assertEqual(self.gmt_safe.unlockDate(), self.c.head_state.timestamp + self.lockedPeriod)
         self.assertEqual(self.gmt_safe.gmtAddress(), '0x' + self.gmt_token.address.hex())
+        self.assertEqual(self.gmt_token.balanceOf(self.gmt_safe.address), 10000000)
 
     def test_unauthorized_unlock(self):
         # Raises if someone without allocations tries to unlock
@@ -60,4 +61,4 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 100
         # TODO: Figure out -- Why does this fail??
 
-        # self.gmt_safe.unlock(sender=keys[5])
+        self.gmt_safe.unlock(sender=keys[5])
