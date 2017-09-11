@@ -27,6 +27,9 @@ contract GMTSafe {
     allocations[0] = 0;
   }
 
+  /// @notice transfer `allocations[msg.sender]` tokens to `msg.sender` from this contract
+  /// @dev The GMT allocations given to the msg.sender are transfered to their account if the lockup period is over
+  /// @return boolean indicating whether the transfer was successful or not
   function unlock() external returns (bool) {
     assert(now >= unlockDate);
 
