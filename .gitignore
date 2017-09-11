@@ -20,3 +20,4 @@ pids
 .DS_Store
 .env
 .pyc
+.secretStore.txt
