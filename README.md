@@ -30,14 +30,43 @@ NOTE: Please ensure to update the file `scripts/tokenSaleConfig.json` with the a
 |
 | contracts
 |   |-- Safe
-|   |   -- GMTSafe.sol
-|   |      * Contract for GMT Safe
-|   |   -- GMTSafeFlattened.sol
-|   |      * Flatteneded contract for GMT Safeg
+|   |   -- GMTSafe.sol (Smart contract for GMT Safe securing employee allocations)
+|   |   -- GMTSafeFlattened.sol (Flatteneded contract for GMTSafe)
+|   |
+|   |-- Tokens
+|   |   -- AbstractToken.sol (Abstract contract for the full ERC 20 Token standard)
+|   |   -- GMToken.sol (Main token sale contract)
+|   |   -- GMTokenFlattened.sol (Flatteneded contract for GMToken)
+|   |   -- StandardToken.sol (Implements ERC 20 Token standard)
+|   |
+|   |-- Utils
+|   |   -- SafeMath.sol (SafeMath library for math operations with safety checks)
+|   |   -- GMToken.sol (Main token sale contract)
+|   |
+|   |-- Wallets
+|   |   -- MultiSigWallet.sol (Multisignature wallet implementation)
+|   |   -- MultiSigWalletWithDailyLimit.sol (Multisignature wallet with daily limi)
 |
-| utils
-|   -- SafeMath.sol
-       * SafeMath library for math operations with safety checks 
+| scripts
+|   -- deployed_abis.json (ABI for deployed contract)
+|   -- eth_abi_creator.py (Scripts for generating abis for smart contracts)
+|   -- eth_deploy.py (Scripts for deploying smart contracts)
+|   -- eth_transaction_scripts.py (Scripts for handling transactions on deployed contracts)
+|   -- tokenSaleConfig.json (Sets contructor params for contracts being deployed using eth_deploy.py)
+|
+| tests
+|   |-- safe
+|   |   -- test_gmt_safe.py (Unit tests for GMTSafe contract)
+|   |
+|   |-- tokens
+|   |   -- test_gmt_token.py (Unit tests for GMToken contract)
+|   |
+|   -- abstract_test.py (Scripts for setting up test environment using pyethereum Tester module)
+|
+| --.gitignore
+| -- Makefile
+| -- README.md
+| -- requirements.txt
 ```
 
 ## Errors you may run into:
