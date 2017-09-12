@@ -112,7 +112,8 @@ class EthDeploy:
 
         self.total_gas += gas_used
 
-        log_output = """Transaction receipt::
+        log_output = """
+                        Transaction receipt::
                         Block number: {}
                         Transaction hash: {}
                         Gas used: {}

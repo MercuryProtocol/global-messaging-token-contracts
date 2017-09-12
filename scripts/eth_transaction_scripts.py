@@ -3,7 +3,6 @@ from ethereum.abi import ContractTranslator
 from ethereum.transactions import Transaction
 from ethereum.utils import privtoaddr
 from ethereum.tools import _solidity
-import eth_deploy
 import click
 import time
 import json
@@ -29,7 +28,15 @@ class Transactions_Handler:
         self.solidity = _solidity.solc_wrapper()
         self._from = None
         self.private_key = None
+        self.abi = None
         self.contract_addr = contract_addr
+
+        fn = os.path.join(os.path.dirname(__file__), 'deployed_abis.json')
+        with open(fn, 'r') as instructions_file:
+            instructions = json.load(instructions_file)
+            self.abi = instructions[self.contract_addr]
+
+        self.contract = self.web3.eth.contract(address=self.contract_addr, abi=self.abi)
 
         # Set sending account
         if account:
@@ -90,15 +97,107 @@ class Transactions_Handler:
     def encode_parameters(self, typesArray, parameters):
         return self.web3.eth.abi.encodeParameters(typesArray, parameters)
     
-    def get_code(self, contractAddress):
-      if contractAddress:
-        return self.web3.eth.getCode(contractAddress)
+    def get_code(self):
+      if contract_addr:
+        return self.web3.eth.getCode(self.contract_addr)
       else:
         default_address = list(self.abis.keys())[0]
         return self.web3.eth.getCode(self.abis[default_address]) if default_address else None
+    
+    def get_owner(self):
+      owner = self.contract.call({ 'from': self._from }).owner()
+      self.log('Contract owner: {}'.format(owner))
 
-    # def send_transaction(self, typesArray, parameters):
-    #     return self.web3.eth.abi.encodeParameters(typesArray, parameters)
+    def get_start_block(self):
+      start_block = self.contract.call({ 'from': self._from }).startBlock()
+      self.log('Start block: {}'.format(start_block))
+      
+    def get_end_block(self):
+      end_block = self.contract.call({ 'from': self._from }).endBlock()
+      self.log('End block: {}'.format(end_block))
+
+    def get_assigned_supply(self):
+      assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply()
+      self.log('End block: {}'.format(assigned_supply))
+    
+    def get_total_supply(self):
+      total_supply = self.contract.call({ 'from': self._from }).totalSupply()
+      self.log('End block: {}'.format(total_supply))
+    
+    def get_stage(self):
+      stage = self.contract.call({ 'from': self._from }).stage()
+      self.log('Stage: {}'.format(stage))
+
+    def start_sale(self):
+      start_sale_transaction_hash = self.contract.transact({ 'from': self._from }).startSale()
+      time.sleep(3)
+      stage = self.contract.call({ 'from': self._from }).stage()
+      self.log("""
+                  Sale started. 
+                  Current stage: {}
+                  Transaction hash: {}
+                  """.format(stage, start_sale_transaction_hash))
+      
+    def stop_sale(self):
+      stop_sale_transaction_hash = self.contract.transact({ 'from': self._from }).stopSale()
+      time.sleep(3)
+      stage = self.contract.call({ 'from': self._from }).stage()
+      self.log("""
+                  Sale stopped. 
+                  Current stage: {}
+                  Transaction hash: {}
+                  """.format(stage, stop_sale_transaction_hash))
+    
+    def set_failed_state(self):
+      failed_sale_transaction_hash = self.contract.transact({ 'from': self._from }).setFailedState()
+      time.sleep(3)
+      stage = self.contract.call({ 'from': self._from }).stage()
+      self.log("""
+                  Sale stopped. 
+                  Current stage: {}
+                  Transaction hash: {}
+                  """.format(stage, failed_sale_transaction_hash))
+    
+    def get_metadata(self):
+      name = self.contract.call({ 'from': self._from }).name()
+      symbol = self.contract.call({ 'from': self._from }).symbol()
+      decimals = self.contract.call({ 'from': self._from }).decimals()
+      owner = self.contract.call({ 'from': self._from }).owner()
+      start_block = self.contract.call({ 'from': self._from }).startBlock()
+      end_block = self.contract.call({ 'from': self._from }).endBlock()
+      assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply()
+      total_supply = self.contract.call({ 'from': self._from }).totalSupply()
+      gmt_fund_address = self.contract.call({ 'from': self._from }).gmtFundAddress()
+      eth_fund_address = self.contract.call({ 'from': self._from }).ethFundAddress()
+
+      log_output = """
+                        METADATA::
+                        Name: {}
+                        Symbol: {}
+                        Decimals: {}
+                        Owner: {}
+                        Start block: {}
+                        End block: {}
+                        Assigned supply: {}
+                        Total supply: {}
+                        GMT fund address: {}
+                        ETH fund address: {} """.format(
+                        name,
+                        symbol,
+                        decimals,
+                        owner,
+                        start_block,
+                        end_block,
+                        assigned_supply,
+                        total_supply,
+                        gmt_fund_address,
+                        eth_fund_address)
+
+      self.log(log_output)
+
+    def send_transaction(self, typesArray, parameters):
+        return self.web3.eth.sendTransaction({'to': self.contract_addr, 'from': self._from, 'value': 0})
+        # return self.web3.eth.abi.encodeParameters(typesArray, parameters)
 
     def log_transaction_receipt(self, transaction_receipt):
         block_number = transaction_receipt['blockNumber']
@@ -110,7 +209,8 @@ class Transactions_Handler:
 
         self.total_gas += gas_used
 
-        log_output = """Transaction receipt::
+        log_output = """
+                        Transaction receipt::
                         Block number: {}
                         Transaction hash: {}
                         Gas used: {}
@@ -146,12 +246,13 @@ class Transactions_Handler:
 @click.option('--port', default='8545', help='Ethereum node port')
 @click.option('--gas', default=4000000, help='Transaction gas')
 @click.option('--gas-price', default=20000000000, help='Transaction gas price')
-@click.option('--contract-address', help='Address of contract to interact with')
+@click.option('--contract-addr', help='Address of contract to interact with')
 @click.option('--account', help='Default account used as from parameter')
 @click.option('--private-key-path', help='Path to private key')
-def setup(f, protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
+def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
     transactions_handler = Transactions_Handler(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path)
-    ## TODO: test out default function
+    transactions_handler.get_metadata()
+    transactions_handler.stop_sale()
 
-# if __name__ == '__main__':
-#   setup()
+if __name__ == '__main__':
+  setup()
