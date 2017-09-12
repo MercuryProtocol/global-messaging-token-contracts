@@ -30,8 +30,8 @@ NOTE: Please ensure to update the file `scripts/tokenSaleConfig.json` with the a
 |
 | contracts
 |   |-- Safe
-|   |   -- GMTSafe.sol (Smart contract for GMT Safe securing employee allocations)
-|   |   -- GMTSafeFlattened.sol (Flatteneded contract for GMTSafe)
+|   |   -- GMTSafe.sol (Smart contract for GMTSafe that secure employee allocations during lockup period)
+|   |   -- GMTSafeFlattened.sol (Flattened contract for GMTSafe)
 |   |
 |   |-- Tokens
 |   |   -- AbstractToken.sol (Abstract contract for the full ERC 20 Token standard)
