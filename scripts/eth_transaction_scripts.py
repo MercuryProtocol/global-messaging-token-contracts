@@ -63,8 +63,7 @@ class Transactions_Handler:
 
         self.log('Instructions are sent from address: {}'.format(self._from))
 
-        balance_hex = self.web3.eth.getBalance(self._from)
-        balance = self.hex2int(balance_hex)
+        balance = self.web3.eth.getBalance(self._from)
 
         self.log('Address balance: {} Ether / {} Wei'.format(balance/10**18, balance))
 
@@ -73,7 +72,7 @@ class Transactions_Handler:
 
     @staticmethod
     def hex2int(_hex):
-        return int(_hex, 16)
+        return int(_hex, base=16)
 
     @staticmethod
     def add_0x(string):
@@ -98,102 +97,131 @@ class Transactions_Handler:
         return self.web3.eth.abi.encodeParameters(typesArray, parameters)
     
     def get_code(self):
-      if contract_addr:
-        return self.web3.eth.getCode(self.contract_addr)
-      else:
-        default_address = list(self.abis.keys())[0]
-        return self.web3.eth.getCode(self.abis[default_address]) if default_address else None
+        if contract_addr:
+          return self.web3.eth.getCode(self.contract_addr)
+        else:
+          default_address = list(self.abis.keys())[0]
+          return self.web3.eth.getCode(self.abis[default_address]) if default_address else None
     
     def get_owner(self):
-      owner = self.contract.call({ 'from': self._from }).owner()
-      self.log('Contract owner: {}'.format(owner))
+        owner = self.contract.call({ 'from': self._from }).owner()
+        self.log('Contract owner: {}'.format(owner))
 
     def get_start_block(self):
-      start_block = self.contract.call({ 'from': self._from }).startBlock()
-      self.log('Start block: {}'.format(start_block))
+        start_block = self.contract.call({ 'from': self._from }).startBlock()
+        self.log('Start block: {}'.format(start_block))
       
     def get_end_block(self):
-      end_block = self.contract.call({ 'from': self._from }).endBlock()
-      self.log('End block: {}'.format(end_block))
+        end_block = self.contract.call({ 'from': self._from }).endBlock()
+        self.log('End block: {}'.format(end_block))
 
     def get_assigned_supply(self):
-      assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply()
-      self.log('End block: {}'.format(assigned_supply))
+        assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply()
+        self.log('End block: {}'.format(assigned_supply))
     
     def get_total_supply(self):
-      total_supply = self.contract.call({ 'from': self._from }).totalSupply()
-      self.log('End block: {}'.format(total_supply))
+        total_supply = self.contract.call({ 'from': self._from }).totalSupply()
+        self.log('End block: {}'.format(total_supply))
     
     def get_stage(self):
-      stage = self.contract.call({ 'from': self._from }).stage()
-      self.log('Stage: {}'.format(stage))
+        stage = self.contract.call({ 'from': self._from }).stage()
+        self.log('Stage: {}'.format(stage))
+
+    def get_gmt_balance_of(self, address):
+        balance = self.contract.call({ 'from': self._from }).balanceOf(self._from) / 10**18
+        self.log('Address: {} | Balance: {}'.format(address, balance))
+
+    def get_eth_balance_of(self, address):
+        balance = self.web3.eth.getBalance(self._from)
+        self.log("Balance for address {} is {} Ether / {} Wei".format(address, balance/10**18, balance))
 
     def start_sale(self):
-      start_sale_transaction_hash = self.contract.transact({ 'from': self._from }).startSale()
-      time.sleep(3)
-      stage = self.contract.call({ 'from': self._from }).stage()
-      self.log("""
-                  Sale started. 
-                  Current stage: {}
-                  Transaction hash: {}
-                  """.format(stage, start_sale_transaction_hash))
+        start_sale_transaction_hash = self.contract.transact({ 'from': self._from }).startSale()
+        time.sleep(5)
+        stage = self.contract.call({ 'from': self._from }).stage()
+        self.log("""
+                    Sale started. 
+                    Current stage: {}
+                    Transaction hash: {}""".format(stage, start_sale_transaction_hash))
       
     def stop_sale(self):
-      stop_sale_transaction_hash = self.contract.transact({ 'from': self._from }).stopSale()
-      time.sleep(3)
-      stage = self.contract.call({ 'from': self._from }).stage()
-      self.log("""
-                  Sale stopped. 
-                  Current stage: {}
-                  Transaction hash: {}
-                  """.format(stage, stop_sale_transaction_hash))
+        stop_sale_transaction_hash = self.contract.transact({ 'from': self._from }).stopSale()
+        time.sleep(5)
+        stage = self.contract.call({ 'from': self._from }).stage()
+        self.log("""
+                    Sale stopped. 
+                    Current stage: {}
+                    Transaction hash: {}""".format(stage, stop_sale_transaction_hash))
     
     def set_failed_state(self):
-      failed_sale_transaction_hash = self.contract.transact({ 'from': self._from }).setFailedState()
-      time.sleep(3)
-      stage = self.contract.call({ 'from': self._from }).stage()
-      self.log("""
-                  Sale stopped. 
-                  Current stage: {}
-                  Transaction hash: {}
-                  """.format(stage, failed_sale_transaction_hash))
+        failed_sale_transaction_hash = self.contract.transact({ 'from': self._from }).setFailedState()
+        time.sleep(5)
+        stage = self.contract.call({ 'from': self._from }).stage()
+        self.log("""
+                    Sale stopped. 
+                    Current stage: {}
+                    Transaction hash: {}""".format(stage, failed_sale_transaction_hash))
+
+    def create_tokens(self, value):
+        create_tokens_transaction_hash = self.contract.transact({ 'from': self._from, 'value': value }).createTokens()
+        time.sleep(5)
+        stage = self.contract.call({ 'from': self._from }).stage()
+        balance = self.contract.call({ 'from': self._from }).balanceOf(self._from) / 10**18
+        self.log("""
+                    Created tokens for {} 
+                    Transaction hash: {}
+                    GMT Balance: {}""".format(
+                    self._from, 
+                    create_tokens_transaction_hash,
+                    balance))
+    
+    def finalize(self, ):
+        finalize_transaction_hash = self.contract.transact({ 'from': self._from }).finalize()
+        time.sleep(5)
+        stage = self.contract.call({ 'from': self._from }).stage()
+        self.log("""
+                    Sale finalized.
+                    Transaction hash: {}""".format(finalize_transaction_hash))
     
     def get_metadata(self):
-      name = self.contract.call({ 'from': self._from }).name()
-      symbol = self.contract.call({ 'from': self._from }).symbol()
-      decimals = self.contract.call({ 'from': self._from }).decimals()
-      owner = self.contract.call({ 'from': self._from }).owner()
-      start_block = self.contract.call({ 'from': self._from }).startBlock()
-      end_block = self.contract.call({ 'from': self._from }).endBlock()
-      assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply()
-      total_supply = self.contract.call({ 'from': self._from }).totalSupply()
-      gmt_fund_address = self.contract.call({ 'from': self._from }).gmtFundAddress()
-      eth_fund_address = self.contract.call({ 'from': self._from }).ethFundAddress()
+        name = self.contract.call({ 'from': self._from }).name()
+        symbol = self.contract.call({ 'from': self._from }).symbol()
+        decimals = self.contract.call({ 'from': self._from }).decimals()
+        owner = self.contract.call({ 'from': self._from }).owner()
+        start_block = self.contract.call({ 'from': self._from }).startBlock()
+        end_block = self.contract.call({ 'from': self._from }).endBlock()
+        assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply()
+        total_supply = self.contract.call({ 'from': self._from }).totalSupply()
+        gmt_fund_address = self.contract.call({ 'from': self._from }).gmtFundAddress()
+        eth_fund_address = self.contract.call({ 'from': self._from }).ethFundAddress()
+        stage = self.contract.call({ 'from': self._from }).stage()
 
-      log_output = """
-                        METADATA::
-                        Name: {}
-                        Symbol: {}
-                        Decimals: {}
-                        Owner: {}
-                        Start block: {}
-                        End block: {}
-                        Assigned supply: {}
-                        Total supply: {}
-                        GMT fund address: {}
-                        ETH fund address: {} """.format(
-                        name,
-                        symbol,
-                        decimals,
-                        owner,
-                        start_block,
-                        end_block,
-                        assigned_supply,
-                        total_supply,
-                        gmt_fund_address,
-                        eth_fund_address)
+        log_output = """
+                          METADATA::
+                          Name: {}
+                          Symbol: {}
+                          Decimals: {}
+                          Owner: {}
+                          Start block: {}
+                          End block: {}
+                          Assigned supply: {}
+                          Total supply: {}
+                          GMT fund address: {}
+                          ETH fund address: {} 
+                          State: {} """.format(
+                          name,
+                          symbol,
+                          decimals,
+                          owner,
+                          start_block,
+                          end_block,
+                          assigned_supply,
+                          total_supply,
+                          gmt_fund_address,
+                          eth_fund_address,
+                          stage)
 
-      self.log(log_output)
+        self.log(log_output)
 
     def send_transaction(self, typesArray, parameters):
         return self.web3.eth.sendTransaction({'to': self.contract_addr, 'from': self._from, 'value': 0})
@@ -252,7 +280,8 @@ class Transactions_Handler:
 def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
     transactions_handler = Transactions_Handler(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path)
     transactions_handler.get_metadata()
-    transactions_handler.stop_sale()
+    amount = 1 * 10**18
+    transactions_handler.create_tokens(amount)
 
 if __name__ == '__main__':
   setup()
