@@ -24,15 +24,15 @@ NOTE: Please ensure to update the file `scripts/tokenSaleConfig.json` with the a
 
 ## Directory structure
 ```
-**/abi**
-    * GMToken.json
-        - ABI for GMToken contract
-    * GMTSafe.json
-        - ABI for GMTSafe contract
+/abi
+ -- GMToken.json
+    * ABI for GMToken contract
+ -- GMTSafe.json
+    * ABI for GMTSafe contract
 
-**/utils**
-    * SafeMath.sol
-        - SafeMath library for math operations with safety checks 
+/utils
+ -- SafeMath.sol
+    * SafeMath library for math operations with safety checks 
 ```
 
 ## Errors you may run into:
