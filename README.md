@@ -4,11 +4,35 @@
 2. `source venv3/bin/activate`
 3. `pip3 install -r requirements.txt`
 
+NOTE: You'll need to have Solidity installed. See http://solidity.readthedocs.io/en/develop/installing-solidity.html
+
 ## To run tests:
 
-`python -m unittest tests.tokens.test_gmt_token`
+`make test`
 
-NOTE: You'll need to have Solidity installed for tests to run. See http://solidity.readthedocs.io/en/develop/installing-solidity.html
+## To deploy:
+
+`make deploy-contracts`
+
+NOTE: Please ensure to update the file `tokenSaleConfig.json` with the appropriate constructor params.
+
+## To create abis:
+
+`make abi-token`
+`make abi-safe`
+
+## Directory structure
+```
+*abi*
+    * GMToken.json
+        - ABI for GMToken contract
+    * GMTSafe.json
+        - ABI for GMTSafe contract
+
+*utils*
+    * SafeMath.sol
+        - SafeMath library for math operations with safety checks 
+```
 
 ## Errors you may run into:
 1. Installing Ethereum using pip, which installs scrypt, gives the following error (on MAC):
@@ -23,10 +47,3 @@ NOTE: You'll need to have Solidity installed for tests to run. See http://solidi
     - To solve this issue we need to use brew to specify the path where the headers are:
     `brew install openssl`
     `env LDFLAGS="-L$(brew --prefix openssl)/lib" CFLAGS="-I$(brew --prefix openssl)/include" ppip3 install -r requirements.txt`
-
-
-
-## TODO: 
-- Add transaction processing scripts
-- Update to ERC223 standard?
-- Add README for audits
