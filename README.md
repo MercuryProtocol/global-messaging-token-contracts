@@ -4,7 +4,7 @@
 2. `source venv3/bin/activate`
 3. `pip3 install -r requirements.txt`
 
-NOTE: You'll need to have Solidity installed. See http://solidity.readthedocs.io/en/develop/installing-solidity.html
+NOTE: You'll need to have Python3 and Solidity installed. For Solidity, see http://solidity.readthedocs.io/en/develop/installing-solidity.html
 
 ## To run tests:
 
@@ -14,22 +14,23 @@ NOTE: You'll need to have Solidity installed. See http://solidity.readthedocs.io
 
 `make deploy-contracts`
 
-NOTE: Please ensure to update the file `tokenSaleConfig.json` with the appropriate constructor params.
+NOTE: Please ensure to update the file `scripts/tokenSaleConfig.json` with the appropriate constructor params.
 
 ## To create abis:
 
 `make abi-token`
+
 `make abi-safe`
 
 ## Directory structure
 ```
-*abi*
+**/abi**
     * GMToken.json
         - ABI for GMToken contract
     * GMTSafe.json
         - ABI for GMTSafe contract
 
-*utils*
+**/utils**
     * SafeMath.sol
         - SafeMath library for math operations with safety checks 
 ```
