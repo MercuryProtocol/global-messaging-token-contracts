@@ -447,6 +447,14 @@
                 "type": "function"
             },
             {
+                "constant": false,
+                "inputs": [],
+                "name": "setFailedState",
+                "outputs": [],
+                "payable": false,
+                "type": "function"
+            },
+            {
                 "constant": true,
                 "inputs": [],
                 "name": "decimals",
@@ -483,6 +491,14 @@
                     }
                 ],
                 "payable": false,
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [],
+                "name": "claimTokens",
+                "outputs": [],
+                "payable": true,
                 "type": "function"
             },
             {
@@ -609,14 +625,6 @@
                     }
                 ],
                 "payable": false,
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [],
-                "name": "createTokens",
-                "outputs": [],
-                "payable": true,
                 "type": "function"
             },
             {
@@ -749,7 +757,7 @@
                         "type": "uint256"
                     }
                 ],
-                "name": "CreateGMT",
+                "name": "ClaimGMT",
                 "type": "event"
             },
             {

@@ -64,8 +64,7 @@ class EthDeploy:
 
         self.log('Instructions are sent from address: {}'.format(self._from))
 
-        balance_hex = self.web3.eth.getBalance(self._from)
-        balance = self.hex2int(balance_hex)
+        balance = self.web3.eth.getBalance(self._from)
 
         self.log('Address balance: {} Ether / {} Wei'.format(balance/10**18, balance))
 
