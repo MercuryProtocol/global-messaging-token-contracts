@@ -45,7 +45,7 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.owner(), '0x' + accounts[0].hex())
 
     def test_create_token_before_sale_starts(self):
-        self.assertRaises(TransactionFailed, self.gmt_token.createTokens)
+        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens)
 
     def test_unauthorized_start(self):
         # Raises if anyone but the owner tries to start the sale
@@ -73,8 +73,8 @@ class TestContract(AbstractTestContracts):
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2_incorrect * 2)
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
-        self.assertRaises(TransactionFailed, self.gmt_token.createTokens, value=value_2_incorrect, sender=keys[3])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_2_incorrect, sender=keys[3])
 
     def test_create_tokens(self):
         self.gmt_token.startSale()
@@ -86,7 +86,7 @@ class TestContract(AbstractTestContracts):
         buyer_1_tokens = value_1 * self.exchangeRate
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
 
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
@@ -103,7 +103,7 @@ class TestContract(AbstractTestContracts):
         value_1 = 1 * 10**18 # 1 Ether
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
-        self.assertRaises(TransactionFailed, self.gmt_token.createTokens, sender=keys[buyer_1])
+        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, sender=keys[buyer_1])
 
     def test_invalid_finalize(self):
         # Raises if try to finalize sale when it's not in progress
@@ -138,9 +138,9 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
         self.c.head_state.set_balance(accounts[buyer_3], value_3 * 2)
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
-        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
-        self.gmt_token.createTokens(value=value_3, sender=keys[buyer_3])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
+        self.gmt_token.claimTokens(value=value_3, sender=keys[buyer_3])
 
          # Set block number to past endBlock to allow finalize
         self.c.head_state.block_number = self.endBlock + 1
@@ -168,9 +168,9 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
         self.c.head_state.set_balance(accounts[buyer_3], value_3 * 2)
         
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
-        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
-        self.gmt_token.createTokens(value=value_3, sender=keys[buyer_3])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
+        self.gmt_token.claimTokens(value=value_3, sender=keys[buyer_3])
 
         # Verify we've updated the total assigned supply of GMT appropriately
         self.assertEqual(self.gmt_token.assignedSupply(), self.gmtFund + buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
@@ -210,8 +210,8 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
         
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
-        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
 
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
@@ -234,8 +234,8 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
         
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
-        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
 
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
@@ -261,8 +261,8 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
         
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
-        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
 
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
@@ -288,8 +288,8 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
         
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
-        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
 
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1
@@ -319,8 +319,8 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
         
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
-        self.gmt_token.createTokens(value=value_2, sender=keys[buyer_2])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
 
         # Set block number to past endBlock to allow refund
         self.c.head_state.block_number = self.endBlock + 1

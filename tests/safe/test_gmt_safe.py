@@ -34,7 +34,7 @@ class TestContract(AbstractTestContracts):
         value_1 = 39200 * 10**18 # 39.2k Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
-        self.gmt_token.createTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
         self.c.head_state.block_number = self.endBlock + 1
         self.gmt_token.finalize()
 
