@@ -4,13 +4,13 @@
 2. `source venv3/bin/activate`
 3. `pip3 install -r requirements.txt`
 
-NOTE: You'll need to have Python3 and Solidity installed. For Solidity, see http://solidity.readthedocs.io/en/develop/installing-solidity.html
+NOTE: You'll need to have Python3 and Solidity installed locally. For Solidity, see http://solidity.readthedocs.io/en/develop/installing-solidity.html
 
 ## To run tests:
 
 `make test`
 
-## To deploy:
+## To deploy contracts:
 
 `make deploy-contracts`
 
@@ -42,10 +42,6 @@ NOTE: Please ensure to update the file `scripts/tokenSaleConfig.json` with the a
 |   |-- Utils
 |   |   -- SafeMath.sol (SafeMath library for math operations with safety checks)
 |   |   -- GMToken.sol (Main token sale contract)
-|   |
-|   |-- Wallets
-|   |   -- MultiSigWallet.sol (Multisignature wallet implementation)
-|   |   -- MultiSigWalletWithDailyLimit.sol (Multisignature wallet with daily limi)
 |
 | scripts
 |   -- deployed_abis.json (ABI for deployed contract)
