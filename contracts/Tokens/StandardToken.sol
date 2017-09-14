@@ -21,6 +21,8 @@ contract StandardToken is Token {
     */
 
     function transfer(address to, uint value) public returns (bool) {
+        // Do not allow transfer to 0x0 or the token contract itself
+        require((to != 0x0) && (to != address(this)));
         if (balances[msg.sender] < value)
             revert();  // Balance too low
         balances[msg.sender] -= value;

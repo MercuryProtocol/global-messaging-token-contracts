@@ -56,6 +56,8 @@ contract StandardToken is Token {
     */
 
     function transfer(address to, uint value) public returns (bool) {
+        // Do not allow transfer to 0x0 or the token contract itself
+        require((to != 0x0) && (to != address(this)));
         if (balances[msg.sender] < value)
             revert();  // Balance too low
         balances[msg.sender] -= value;
@@ -107,7 +109,7 @@ contract GMTSafe {
     unlockDate = now + 6 * 30 days;
 
     // TODO: Add allocations
-    allocations[0x77dB2BEBBA79Db42a978F896968f4afCE746ea1F] = 7000;
+    allocations[0] = 0;
   }
 
   /// @notice transfer `allocations[msg.sender]` tokens to `msg.sender` from this contract
