@@ -134,6 +134,10 @@ class Transactions_Handler:
     def get_eth_balance_of(self, address):
         balance = self.web3.eth.getBalance(self._from)
         self.log("Balance for address {} is {} Ether / {} Wei".format(address, balance/10**18, balance))
+    
+    def change_owner(self, address):
+        self.contract.transact({ 'from': self._from }).changeOwner(address)
+        self.log("Owner for contract changed from {} to {}".format(self._from, address))
 
     def start_sale(self):
         start_sale_transaction_hash = self.contract.transact({ 'from': self._from }).startSale()
