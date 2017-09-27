@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.15;
 
 contract Token {
 
@@ -109,7 +109,7 @@ contract GMTSafe {
     unlockDate = now + 6 * 30 days;
 
     // TODO: Add allocations
-    allocations[0] = 0;
+    allocations[0x77dB2BEBBA79Db42a978F896968f4afCE746ea1F] = 7000;
   }
 
   /// @notice transfer `allocations[msg.sender]` tokens to `msg.sender` from this contract

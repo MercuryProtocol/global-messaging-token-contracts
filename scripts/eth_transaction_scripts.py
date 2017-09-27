@@ -179,7 +179,7 @@ class Transactions_Handler:
                     create_tokens_transaction_hash,
                     balance))
     
-    def finalize(self, ):
+    def finalize(self):
         finalize_transaction_hash = self.contract.transact({ 'from': self._from }).finalize()
         time.sleep(5)
         stage = self.contract.call({ 'from': self._from }).stage()
