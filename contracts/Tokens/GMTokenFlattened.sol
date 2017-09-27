@@ -321,7 +321,7 @@ contract GMToken is StandardToken {
     /// @notice Allows contributors to recover their ETH in the case of a failed token sale
     /// @dev Only allowed to be called once sale period is over IF the min cap is not reached
     /// @return bool True if refund successfully sent, false otherwise
-    function refund() atStage(Stages.Failed) salePeriodCompleted external returns (bool) {
+    function refund() registeredUser atStage(Stages.Failed) salePeriodCompleted external returns (bool) {
         assert(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
         assert(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
 
