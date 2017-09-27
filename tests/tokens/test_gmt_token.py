@@ -169,7 +169,7 @@ class TestContract(AbstractTestContracts):
         value_1 = 90 * 10**18 # 90 Ether
         value_2 = 30 * 10**18 # 30 Ether
         value_3 = 200 * 10**18 # 200 Ether
-        # Register user for participation
+        # Register users for participation
         targets = [accounts[buyer_1], accounts[buyer_2], accounts[buyer_3]]
         self.gmt_token.changeRegistrationStatuses(targets, True)
 
@@ -197,7 +197,7 @@ class TestContract(AbstractTestContracts):
         value_1 = 900 * 10**18 # 90 Ether
         value_2 = 30000 * 10**18 # 30k Ether
         value_3 = 200 * 10**18 # 200 Ether
-        # Register user for participation
+        # Register users for participation
         targets = [accounts[buyer_1], accounts[buyer_2], accounts[buyer_3]]
         self.gmt_token.changeRegistrationStatuses(targets, True)
 
@@ -248,7 +248,7 @@ class TestContract(AbstractTestContracts):
         buyer_2 = 4
         value_1 = 30 * 10**18 # 30 Ether
         value_2 = 10 * 10**18 # 10 Ether
-        # Register user for participation
+        # Register users for participation
         targets = [accounts[buyer_1], accounts[buyer_2]]
         self.gmt_token.changeRegistrationStatuses(targets, True)
 
@@ -275,7 +275,7 @@ class TestContract(AbstractTestContracts):
         buyer_2 = 4
         value_1 = 1300 * 10**18 # 1300 Ether
         value_2 = 30000 * 10**18 # 30k Ether
-        # Register user for participation
+        # Register users for participation
         targets = [accounts[buyer_1], accounts[buyer_2]]
         self.gmt_token.changeRegistrationStatuses(targets, True)
 
@@ -335,7 +335,7 @@ class TestContract(AbstractTestContracts):
         buyer_2 = 4
         value_1 = 30 * 10**18 # 30 Ether
         value_2 = 10 * 10**18 # 10 Ether
-        # Register user for participation
+        # Register users for participation
         targets = [accounts[buyer_1], accounts[buyer_2]]
         self.gmt_token.changeRegistrationStatuses(targets, True)
 
@@ -369,7 +369,7 @@ class TestContract(AbstractTestContracts):
         value_2 = 10 * 10**18 # 10 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         buyer_2_tokens = value_2 * self.exchangeRate
-        # Register user for participation
+        # Register users for participation
         targets = [accounts[buyer_1], accounts[buyer_2]]
         self.gmt_token.changeRegistrationStatuses(targets, True)
 
