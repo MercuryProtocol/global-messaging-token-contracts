@@ -178,6 +178,11 @@ contract GMToken is StandardToken {
         owner = _newOwner;
     }
 
+    modifier registeredUser() {
+        require(registered[msg.sender] == true);  
+        _;
+    }
+
     modifier minCapReached() {
         assert(assignedSupply - gmtFund >= minCap);
         _;
@@ -244,7 +249,7 @@ contract GMToken is StandardToken {
 
     /// @notice Create `msg.value` ETH worth of GMT
     /// @dev Only allowed to be called within the timeframe of the sale period
-    function claimTokens() respectTimeFrame atStage(Stages.InProgress) payable external {
+    function claimTokens() respectTimeFrame registeredUser atStage(Stages.InProgress) payable external {
         assert(msg.value > 0);
 
         // Check that we're not over totals

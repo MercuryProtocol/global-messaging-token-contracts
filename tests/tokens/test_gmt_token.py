@@ -45,7 +45,10 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.owner(), '0x' + accounts[0].hex())
 
     def test_create_token_before_sale_starts(self):
-        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens)
+        buyer_1 = 3
+        # Register user for participation
+        self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
+        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, sender=keys[buyer_1])
 
     def test_unauthorized_start(self):
         # Raises if anyone but the owner tries to start the sale
@@ -58,9 +61,31 @@ class TestContract(AbstractTestContracts):
         self.gmt_token.startSale() 
         self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
 
-    def test_change_registration_status(self):
+    def test_change_registration_status_unauthorized(self):
         participant_1 = 3
-        self.assertRaises(TransactionFailed, self.gmt_token.changeRegistrationStatus(accounts[participant_1]), sender=keys[3])
+        self.assertRaises(TransactionFailed, self.gmt_token.changeRegistrationStatus(accounts[participant_1], True), sender=keys[3])
+
+    def test_change_registration_status_authorized(self):
+        participant_1 = 7
+        self.gmt_token.changeRegistrationStatus(accounts[participant_1], True)
+        self.assertEqual(self.gmt_token.isAddressRegistered(accounts[participant_1]), True)
+
+    def test_change_registration_statuses_unauthorized(self):
+        participant_1 = 3
+        participant_2 = 4
+        participant_3 = 5
+        targets = [accounts[participant_1], accounts[participant_2], accounts[participant_3]]
+        self.assertRaises(TransactionFailed, self.gmt_token.changeRegistrationStatuses(targets, True), sender=keys[7])
+
+    def test_change_registration_statuses_authorized(self):
+        participant_1 = 3
+        participant_2 = 4
+        participant_3 = 5
+        targets = [accounts[participant_1], accounts[participant_2], accounts[participant_3]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
+        self.assertEqual(self.gmt_token.isAddressRegistered(accounts[participant_1]), True)
+        self.assertEqual(self.gmt_token.isAddressRegistered(accounts[participant_2]), True)
+        self.assertEqual(self.gmt_token.isAddressRegistered(accounts[participant_3]), True)
 
     def test_create_tokens_more_than_total_supply(self):
         self.gmt_token.startSale()
@@ -71,6 +96,8 @@ class TestContract(AbstractTestContracts):
         value_1 = 100000 * 10**18 # 100K Ether
         buyer_2 = 4
         value_2_incorrect = 20000 * 10**18 # 20K Ether
+        targets = [accounts[buyer_1], accounts[buyer_2]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
 
         buyer_1_tokens = value_1 * self.exchangeRate
         buyer_2_tokens_too_many = value_2_incorrect * self.exchangeRate
@@ -88,6 +115,8 @@ class TestContract(AbstractTestContracts):
         buyer_1 = 3
         value_1 = 1 * 10**18 # 1 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
+        # Register user for participation
+        self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
@@ -105,6 +134,8 @@ class TestContract(AbstractTestContracts):
 
         buyer_1 = 3
         value_1 = 1 * 10**18 # 1 Ether
+        # Register user for participation
+        self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, sender=keys[buyer_1])
@@ -138,6 +169,9 @@ class TestContract(AbstractTestContracts):
         value_1 = 90 * 10**18 # 90 Ether
         value_2 = 30 * 10**18 # 30 Ether
         value_3 = 200 * 10**18 # 200 Ether
+        # Register user for participation
+        targets = [accounts[buyer_1], accounts[buyer_2], accounts[buyer_3]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
@@ -163,6 +197,10 @@ class TestContract(AbstractTestContracts):
         value_1 = 900 * 10**18 # 90 Ether
         value_2 = 30000 * 10**18 # 30k Ether
         value_3 = 200 * 10**18 # 200 Ether
+        # Register user for participation
+        targets = [accounts[buyer_1], accounts[buyer_2], accounts[buyer_3]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
+
         buyer_1_tokens = value_1 * self.exchangeRate
         buyer_2_tokens = value_2 * self.exchangeRate
         buyer_3_tokens = value_3 * self.exchangeRate
@@ -210,6 +248,9 @@ class TestContract(AbstractTestContracts):
         buyer_2 = 4
         value_1 = 30 * 10**18 # 30 Ether
         value_2 = 10 * 10**18 # 10 Ether
+        # Register user for participation
+        targets = [accounts[buyer_1], accounts[buyer_2]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
@@ -222,7 +263,7 @@ class TestContract(AbstractTestContracts):
 
         self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
 
-        # Raises if contributor tries to get a refund after min cap is reached
+        # Raises if contributor tries to get a refund while sale is in progress
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[buyer_1])
 
     def test_refund_after_mincap_reached(self):
@@ -234,6 +275,9 @@ class TestContract(AbstractTestContracts):
         buyer_2 = 4
         value_1 = 1300 * 10**18 # 1300 Ether
         value_2 = 30000 * 10**18 # 30k Ether
+        # Register user for participation
+        targets = [accounts[buyer_1], accounts[buyer_2]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
@@ -261,6 +305,9 @@ class TestContract(AbstractTestContracts):
         buyer_2 = 4
         value_1 = 30 * 10**18 # 30 Ether
         value_2 = 10 * 10**18 # 10 Ether
+        # Register user for participation
+        targets = [accounts[buyer_1], accounts[buyer_2]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
@@ -288,6 +335,9 @@ class TestContract(AbstractTestContracts):
         buyer_2 = 4
         value_1 = 30 * 10**18 # 30 Ether
         value_2 = 10 * 10**18 # 10 Ether
+        # Register user for participation
+        targets = [accounts[buyer_1], accounts[buyer_2]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
@@ -319,6 +369,9 @@ class TestContract(AbstractTestContracts):
         value_2 = 10 * 10**18 # 10 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         buyer_2_tokens = value_2 * self.exchangeRate
+        # Register user for participation
+        targets = [accounts[buyer_1], accounts[buyer_2]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
