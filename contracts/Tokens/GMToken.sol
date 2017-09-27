@@ -176,14 +176,6 @@ contract GMToken is StandardToken {
         }
     }
 
-
-    /// @notice Tells whether user is registered for participation
-    /// @param target Addresses to check registration list against
-    /// @return bool True if user is registered, false otherwise
-    function isAddressRegistered(address target) external returns (bool) {
-        return registered[target];
-    }
-
     /// @notice Ends the funding period and sends the ETH to Multi-sig wallet
     /// @dev Only allowed to be called by the owner once sale period is over and the min cap is reached
     function finalize() 
