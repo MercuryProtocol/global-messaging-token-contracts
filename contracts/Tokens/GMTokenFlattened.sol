@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.15;
 
 contract Token {
 
@@ -140,6 +140,11 @@ contract GMToken is StandardToken {
     address public gmtFundAddress;  // Address for GMT allocated to Radical App International
 
     /*
+    *  List of registered participants
+    */
+    mapping (address => bool) public registered;
+
+    /*
     *  Crowdsale parameters
     */
     Stages public stage;
@@ -254,6 +259,37 @@ contract GMToken is StandardToken {
         ClaimGMT(msg.sender, tokens);  // Logs token creation for UI purposes
     }
 
+
+    /// @notice Updates registration status of an address for sale participation
+    /// @param target Address that will be registered or deregistered
+    /// @param isRegistered New registration status of address
+    function changeRegistrationStatus(address target, bool isRegistered)
+        public
+        onlyBy(owner) 
+    {
+        registered[target] = isRegistered;
+    }
+
+    /// @notice Updates registration status for multiple addresses for participation
+    /// @param targets Addresses that will be registered or deregistered
+    /// @param isRegistered New registration status of addresses
+    function changeRegistrationStatuses(address[] targets, bool isRegistered)
+        public
+        onlyBy(owner) 
+    {
+        for (uint i = 0; i < targets.length; i++) {
+            changeRegistrationStatus(targets[i], isRegistered);
+        }
+    }
+
+
+    /// @notice Tells whether user is registered for participation
+    /// @param target Addresses to check registration list against
+    /// @return bool True if user is registered, false otherwise
+    function isAddressRegistered(address target) external returns (bool) {
+        return registered[target];
+    }
+
     /// @notice Ends the funding period and sends the ETH to Multi-sig wallet
     /// @dev Only allowed to be called by the owner once sale period is over and the min cap is reached
     function finalize() 
@@ -279,6 +315,7 @@ contract GMToken is StandardToken {
 
     /// @notice Allows contributors to recover their ETH in the case of a failed token sale
     /// @dev Only allowed to be called once sale period is over IF the min cap is not reached
+    /// @return bool True if refund successfully sent, false otherwise
     function refund() atStage(Stages.Failed) salePeriodCompleted external returns (bool) {
         assert(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
         assert(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund

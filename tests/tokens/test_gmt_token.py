@@ -58,6 +58,10 @@ class TestContract(AbstractTestContracts):
         self.gmt_token.startSale() 
         self.assertEqual(self.gmt_token.stage(), 1) # 1=InProgress
 
+    def test_change_registration_status(self):
+        participant_1 = 3
+        self.assertRaises(TransactionFailed, self.gmt_token.changeRegistrationStatus(accounts[participant_1]), sender=keys[3])
+
     def test_create_tokens_more_than_total_supply(self):
         self.gmt_token.startSale()
         # Move forward a few blocks to be within funding time frame

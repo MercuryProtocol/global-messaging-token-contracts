@@ -173,9 +173,9 @@ contract GMToken is StandardToken {
 
 
     /// @notice Tells whether user is registered for participation
-    /// @param targets Addresses to check registration list against
-    /// @returns bool True if user is registered, false otherwise
-    function isAddressRegistered(address target) external returns (bool) {{
+    /// @param target Addresses to check registration list against
+    /// @return bool True if user is registered, false otherwise
+    function isAddressRegistered(address target) external returns (bool) {
         return registered[target];
     }
 
