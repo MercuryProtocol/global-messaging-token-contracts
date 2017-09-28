@@ -185,7 +185,7 @@ class Transactions_Handler:
                     Transaction hash: {}
                     GMT Balance: {}""".format(
                     self._from, 
-                    create_tokens_transaction_hash,
+                    claim_tokens_transaction_hash,
                     balance))
     
     def finalize(self):
@@ -292,7 +292,9 @@ class Transactions_Handler:
 @click.option('--private-key-path', help='Path to private key')
 def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
     transactions_handler = Transactions_Handler(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path)
-    transactions_handler.change_registration_statuses(['0xb19cae00537646312628bdc1afc72b7e46c0310d', '0x41a4ffc368418b91db572d12d1371b0a42718f5f'], True)
+    transactions_handler.get_metadata()
+    # transactions_handler.change_registration_statuses(['0xb19cae00537646312628bdc1afc72b7e46c0310d', '0x41a4ffc368418b91db572d12d1371b0a42718f5f'], True)
+    # transactions_handler.claim_tokens(20000)
 
 if __name__ == '__main__':
   setup()
