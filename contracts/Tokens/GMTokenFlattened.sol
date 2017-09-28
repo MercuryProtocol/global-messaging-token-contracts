@@ -268,31 +268,17 @@ contract GMToken is StandardToken {
     /// @notice Updates registration status of an address for sale participation
     /// @param target Address that will be registered or deregistered
     /// @param isRegistered New registration status of address
-    function changeRegistrationStatus(address target, bool isRegistered)
-        public
-        onlyBy(owner) 
-    {
+    function changeRegistrationStatus(address target, bool isRegistered) public onlyBy(owner) {
         registered[target] = isRegistered;
     }
 
     /// @notice Updates registration status for multiple addresses for participation
     /// @param targets Addresses that will be registered or deregistered
     /// @param isRegistered New registration status of addresses
-    function changeRegistrationStatuses(address[] targets, bool isRegistered)
-        public
-        onlyBy(owner) 
-    {
+    function changeRegistrationStatuses(address[] targets, bool isRegistered) public onlyBy(owner) {
         for (uint i = 0; i < targets.length; i++) {
             changeRegistrationStatus(targets[i], isRegistered);
         }
-    }
-
-
-    /// @notice Tells whether user is registered for participation
-    /// @param target Addresses to check registration list against
-    /// @return bool True if user is registered, false otherwise
-    function isAddressRegistered(address target) external returns (bool) {
-        return registered[target];
     }
 
     /// @notice Ends the funding period and sends the ETH to Multi-sig wallet

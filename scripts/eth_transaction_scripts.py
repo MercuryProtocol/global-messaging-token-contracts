@@ -37,7 +37,7 @@ class Transactions_Handler:
             self.abi = instructions[self.contract_addr]
 
         self.contract = self.web3.eth.contract(address=self.contract_addr, abi=self.abi)
-
+        
         # Set sending account
         if account:
             self._from = self.add_0x(account)
@@ -60,6 +60,7 @@ class Transactions_Handler:
 
         # Total consumed gas
         self.total_gas = 0
+        
 
         self.log('Instructions are sent from address: {}'.format(self._from))
 
@@ -139,6 +140,14 @@ class Transactions_Handler:
         self.contract.transact({ 'from': self._from }).changeOwner(address)
         self.log("Owner for contract changed from {} to {}".format(self._from, address))
 
+    def change_registration_status(self, address, status):
+        change_registration_status_transaction_hash = self.contract.transact({ 'from': self._from }).changeRegistrationStatus(address, status)
+        self.log("Transaction hash: {}".format(change_registration_status_transaction_hash))
+    
+    def change_registration_statuses(self, addressesArray, status):
+        change_registration_status_transaction_hash = self.contract.transact({ 'from': self._from }).changeRegistrationStatuses(addressesArray, status)
+        self.log("Transaction hash: {}".format(change_registration_status_transaction_hash))
+
     def start_sale(self):
         start_sale_transaction_hash = self.contract.transact({ 'from': self._from }).startSale()
         time.sleep(5)
@@ -166,8 +175,8 @@ class Transactions_Handler:
                     Current stage: {}
                     Transaction hash: {}""".format(stage, failed_sale_transaction_hash))
 
-    def create_tokens(self, value):
-        create_tokens_transaction_hash = self.contract.transact({ 'from': self._from, 'value': value }).createTokens()
+    def claim_tokens(self, value):
+        claim_tokens_transaction_hash = self.contract.transact({ 'from': self._from, 'value': value }).claimTokens()
         time.sleep(5)
         stage = self.contract.call({ 'from': self._from }).stage()
         balance = self.contract.call({ 'from': self._from }).balanceOf(self._from) / 10**18
@@ -283,9 +292,7 @@ class Transactions_Handler:
 @click.option('--private-key-path', help='Path to private key')
 def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
     transactions_handler = Transactions_Handler(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path)
-    transactions_handler.get_metadata()
-    amount = 1 * 10**18
-    transactions_handler.create_tokens(amount)
+    transactions_handler.change_registration_statuses(['0xb19cae00537646312628bdc1afc72b7e46c0310d', '0x41a4ffc368418b91db572d12d1371b0a42718f5f'], True)
 
 if __name__ == '__main__':
   setup()
