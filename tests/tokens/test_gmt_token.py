@@ -68,7 +68,7 @@ class TestContract(AbstractTestContracts):
     def test_change_registration_status_authorized(self):
         participant_1 = 7
         self.gmt_token.changeRegistrationStatus(accounts[participant_1], True)
-        self.assertEqual(self.gmt_token.isAddressRegistered(accounts[participant_1]), True)
+        self.assertEqual(self.gmt_token.registered(accounts[participant_1]), True)
 
     def test_change_registration_statuses_unauthorized(self):
         participant_1 = 3
@@ -83,9 +83,9 @@ class TestContract(AbstractTestContracts):
         participant_3 = 5
         targets = [accounts[participant_1], accounts[participant_2], accounts[participant_3]]
         self.gmt_token.changeRegistrationStatuses(targets, True)
-        self.assertEqual(self.gmt_token.isAddressRegistered(accounts[participant_1]), True)
-        self.assertEqual(self.gmt_token.isAddressRegistered(accounts[participant_2]), True)
-        self.assertEqual(self.gmt_token.isAddressRegistered(accounts[participant_3]), True)
+        self.assertEqual(self.gmt_token.registered(accounts[participant_1]), True)
+        self.assertEqual(self.gmt_token.registered(accounts[participant_2]), True)
+        self.assertEqual(self.gmt_token.registered(accounts[participant_3]), True)
 
     def test_create_tokens_more_than_total_supply(self):
         self.gmt_token.startSale()

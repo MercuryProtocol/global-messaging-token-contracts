@@ -116,10 +116,10 @@ contract GMTSafe {
   /// @dev The GMT allocations given to the msg.sender are transfered to their account if the lockup period is over
   /// @return boolean indicating whether the transfer was successful or not
   function unlock() external returns (bool) {
-    assert(now >= unlockDate);
+    require(now >= unlockDate);
 
     uint256 entitled = allocations[msg.sender];
-    assert(entitled > 0);
+    require(entitled > 0);
     allocations[msg.sender] = 0;
 
     if (!StandardToken(gmtAddress).transfer(msg.sender, entitled * 10**decimals)) {

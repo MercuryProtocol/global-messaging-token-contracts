@@ -73,22 +73,22 @@ contract GMToken is StandardToken {
     }
 
     modifier minCapReached() {
-        assert(assignedSupply - gmtFund >= minCap);
+        require(assignedSupply - gmtFund >= minCap);
         _;
     }
 
     modifier respectTimeFrame() {
-        assert((block.number >= startBlock) && (block.number < endBlock));
+        require((block.number >= startBlock) && (block.number < endBlock));
         _;
     }
 
     modifier salePeriodCompleted() {
-        assert(block.number >= endBlock);
+        require(block.number >= endBlock);
         _;
     }
 
     modifier atStage(Stages _stage) {
-        assert(stage == _stage);
+        require(stage == _stage);
         _;
     }
 
@@ -139,14 +139,14 @@ contract GMToken is StandardToken {
     /// @notice Create `msg.value` ETH worth of GMT
     /// @dev Only allowed to be called within the timeframe of the sale period
     function claimTokens() respectTimeFrame registeredUser atStage(Stages.InProgress) payable external {
-        assert(msg.value > 0);
+        require(msg.value > 0);
 
         // Check that we're not over totals
         uint256 tokens = msg.value.mul(tokenExchangeRate); 
         uint256 checkedSupply = assignedSupply.add(tokens);
 
         // Return money if we're over total token supply
-        assert(checkedSupply <= totalSupply); 
+        require(checkedSupply <= totalSupply); 
 
         balances[msg.sender] += tokens;
         assignedSupply = checkedSupply;
@@ -197,11 +197,11 @@ contract GMToken is StandardToken {
     /// @dev Only allowed to be called once sale period is over IF the min cap is not reached
     /// @return bool True if refund successfully sent, false otherwise
     function refund() registeredUser atStage(Stages.Failed) salePeriodCompleted external returns (bool) {
-        assert(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
-        assert(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
+        require(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
+        require(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];
-        assert(gmtVal > 0); // Prevent refund if sender GMT balance is 0
+        require(gmtVal > 0); // Prevent refund if sender GMT balance is 0
 
         balances[msg.sender] -= gmtVal;
         assignedSupply = assignedSupply.sub(gmtVal); // Adjust assigned supply to account for refunded amount
