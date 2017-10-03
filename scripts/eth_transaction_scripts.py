@@ -150,38 +150,34 @@ class Transactions_Handler:
 
     def start_sale(self):
         start_sale_transaction_hash = self.contract.transact({ 'from': self._from }).startSale()
-        time.sleep(5)
         stage = self.contract.call({ 'from': self._from }).stage()
         self.log("""
-                    Sale started. 
+                    Sale started. Transaction in progress. 
                     Current stage: {}
                     Transaction hash: {}""".format(stage, start_sale_transaction_hash))
       
     def stop_sale(self):
         stop_sale_transaction_hash = self.contract.transact({ 'from': self._from }).stopSale()
-        time.sleep(5)
         stage = self.contract.call({ 'from': self._from }).stage()
         self.log("""
-                    Sale stopped. 
+                    Sale stopped. Transaction in progress. 
                     Current stage: {}
                     Transaction hash: {}""".format(stage, stop_sale_transaction_hash))
     
     def set_failed_state(self):
         failed_sale_transaction_hash = self.contract.transact({ 'from': self._from }).setFailedState()
-        time.sleep(5)
         stage = self.contract.call({ 'from': self._from }).stage()
         self.log("""
-                    Sale stopped. 
+                    Sale stopped. Transaction in progress. 
                     Current stage: {}
                     Transaction hash: {}""".format(stage, failed_sale_transaction_hash))
 
     def claim_tokens(self, value):
         claim_tokens_transaction_hash = self.contract.transact({ 'from': self._from, 'value': value }).claimTokens()
-        time.sleep(5)
         stage = self.contract.call({ 'from': self._from }).stage()
         balance = self.contract.call({ 'from': self._from }).balanceOf(self._from) / 10**18
         self.log("""
-                    Created tokens for {} 
+                    Created tokens for {}. Transaction in progress. 
                     Transaction hash: {}
                     GMT Balance: {}""".format(
                     self._from, 
@@ -190,10 +186,9 @@ class Transactions_Handler:
     
     def finalize(self):
         finalize_transaction_hash = self.contract.transact({ 'from': self._from }).finalize()
-        time.sleep(5)
         stage = self.contract.call({ 'from': self._from }).stage()
         self.log("""
-                    Sale finalized.
+                    Sale finalized. Transaction in progress. 
                     Transaction hash: {}""".format(finalize_transaction_hash))
     
     def get_metadata(self):
@@ -236,10 +231,6 @@ class Transactions_Handler:
 
         self.log(log_output)
 
-    def send_transaction(self, typesArray, parameters):
-        return self.web3.eth.sendTransaction({'to': self.contract_addr, 'from': self._from, 'value': 0})
-        # return self.web3.eth.abi.encodeParameters(typesArray, parameters)
-
     def log_transaction_receipt(self, transaction_receipt):
         block_number = transaction_receipt['blockNumber']
         transaction_hash = transaction_receipt['transactionHash']
@@ -268,7 +259,14 @@ class Transactions_Handler:
         self.log(log_output)
 
     def get_transaction_receipt(self, transaction_hash):
-        return self.web3.eth.getTransactionReceipt(transaction_hash)
+        receipt = self.web3.eth.getTransactionReceipt(transaction_hash)
+        self.log("Transaction Receipt: {}".format(receipt))
+        return receipt
+    
+    def estimate_gas(self):
+        gas_estimate = self.contract.estimateGas().changeRegistrationStatuses(['TBU'], True)
+        self.log("Gas estimate: {}".format(gas_estimate))
+        return gas_estimate
 
     def replace_references(self, a):
         if isinstance(a, list):
@@ -277,8 +275,9 @@ class Transactions_Handler:
             return self.references[a] if isinstance(a, str) and a in self.references else a
 
     def get_nonce(self):
-        transaction_count = self.json_rpc.eth_getTransactionCount(self._from, default_block='pending')['result']
-        return self.hex2int(self.strip_0x(transaction_count))
+        transaction_count = self.web3.eth.getTransactionCount(self._from)
+        self.log("Nonce: {}".format(transaction_count))
+        return transaction_count
 
 
 @click.command()
@@ -293,6 +292,10 @@ class Transactions_Handler:
 def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
     transactions_handler = Transactions_Handler(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path)
     transactions_handler.get_metadata()
+    # transactions_handler.start_sale()
+    # transactions_handler.get_transaction_receipt('0xc15de79d53f824c1ca387ad0d243e02046032099ce8af08bd1ca2802112d7af3')
+    # transactions_handler.get_nonce()
+    # transactions_handler.estimate_gas()
     # transactions_handler.change_registration_statuses(['0xb19cae00537646312628bdc1afc72b7e46c0310d', '0x41a4ffc368418b91db572d12d1371b0a42718f5f'], True)
     # transactions_handler.claim_tokens(20000)
 

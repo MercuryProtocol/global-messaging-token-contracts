@@ -166,12 +166,15 @@ class EthDeploy:
             if self.contract_dir:
                 file_path = '{}/{}'.format(self.contract_dir, file_path)
             bytecode, abi = self.compile_code(path=file_path)
+            self.log('Contract ABI: '.format(abi)
             if not label:
                 label = file_path.split("/")[-1].split(".")[0]
 
         if sourcecode:
             # Compile code
             bytecode, abi = self.compile_code(code=sourcecode)
+            # Set up contract creation transaction
+            self.log('Contract ABI: '.format(abi)
 
         if params:
             translator = ContractTranslator(abi)
@@ -210,7 +213,7 @@ class EthDeploy:
         
         # Generate transaction receipt
         # Needs to hold before transaction receipt is registered
-        time.sleep(30)
+        time.sleep(120)
         transaction_receipt = self.get_transaction_receipt(tx_response)
 
         contract_address = transaction_receipt['contractAddress']
