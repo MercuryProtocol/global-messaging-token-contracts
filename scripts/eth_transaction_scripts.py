@@ -291,13 +291,19 @@ class Transactions_Handler:
 @click.option('--private-key-path', help='Path to private key')
 def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
     transactions_handler = Transactions_Handler(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path)
-    transactions_handler.get_metadata()
+    # transactions_handler.get_metadata()
     # transactions_handler.start_sale()
-    # transactions_handler.get_transaction_receipt('0xc15de79d53f824c1ca387ad0d243e02046032099ce8af08bd1ca2802112d7af3')
+    # transactions_handler.stop_sale()
+    # transactions_handler.stop_sale()
+    transactions_handler.get_stage()
+    # transactions_handler.get_assigned_supply()
+    # transactions_handler.change_owner('NEW ADDRESS')
+    # transactions_handler.get_transaction_receipt('TRANSACTION_HASH')
     # transactions_handler.get_nonce()
     # transactions_handler.estimate_gas()
-    # transactions_handler.change_registration_statuses(['0xb19cae00537646312628bdc1afc72b7e46c0310d', '0x41a4ffc368418b91db572d12d1371b0a42718f5f'], True)
+    # transactions_handler.change_registration_statuses(['ADDRESS_1', 'ADDRESS_2'], True)
     # transactions_handler.claim_tokens(20000)
+    # transactions_handler.finalize()
 
 if __name__ == '__main__':
   setup()
