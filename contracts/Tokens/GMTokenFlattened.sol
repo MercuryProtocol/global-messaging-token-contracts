@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.17;
 
 contract Token {
 
@@ -92,25 +92,25 @@ contract StandardToken is Token {
 }
 
 library SafeMath {
-    function mul(uint256 a, uint256 b) internal constant returns (uint256) {
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
       uint256 c = a * b;
       assert(a == 0 || c / a == b);
       return c;
     }
 
-    function div(uint256 a, uint256 b) internal constant returns (uint256) {
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
       assert(b > 0);
       uint256 c = a / b;
       assert(a == b * c + a % b);
       return c;
     }
 
-    function sub(uint256 a, uint256 b) internal constant returns (uint256) {
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
       assert(b <= a);
       return a - b;
     }
 
-    function add(uint256 a, uint256 b) internal constant returns (uint256) {
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
       uint256 c = a + b;
       assert(c >= a && c >= b);
       return c;
@@ -174,7 +174,7 @@ contract GMToken is StandardToken {
         _;
     }
 
-    function changeOwner(address _newOwner) onlyBy(owner) {
+    function changeOwner(address _newOwner) onlyBy(owner) external {
         owner = _newOwner;
     }
 
@@ -210,7 +210,9 @@ contract GMToken is StandardToken {
         address _ethFundAddress,
         address _gmtFundAddress,
         uint256 _startBlock,
-        uint256 _endBlock) {
+        uint256 _endBlock) 
+        public 
+    {
         require(_gmtFundAddress != 0x0);
         require(_ethFundAddress != 0x0);
 

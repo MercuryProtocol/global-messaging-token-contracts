@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.17;
 
 /*
   Abstract contract for the full ERC 20 Token standard

@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.17;
 
 import 'contracts/Tokens/StandardToken.sol';
 import 'contracts/Utils/SafeMath.sol';
@@ -63,7 +63,7 @@ contract GMToken is StandardToken {
         _;
     }
 
-    function changeOwner(address _newOwner) onlyBy(owner) {
+    function changeOwner(address _newOwner) onlyBy(owner) external {
         owner = _newOwner;
     }
 
@@ -99,7 +99,9 @@ contract GMToken is StandardToken {
         address _ethFundAddress,
         address _gmtFundAddress,
         uint256 _startBlock,
-        uint256 _endBlock) {
+        uint256 _endBlock) 
+        public 
+    {
         require(_gmtFundAddress != 0x0);
         require(_ethFundAddress != 0x0);
 
