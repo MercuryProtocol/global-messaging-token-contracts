@@ -106,6 +106,18 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.set_balance(accounts[buyer_2], value_2_incorrect * 2)
         self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
         self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_2_incorrect, sender=keys[3])
+    
+    def test_create_tokens_unregistered(self):
+        self.gmt_token.startSale()
+        # Move forward a few blocks to be within funding time frame
+        self.c.head_state.block_number = self.startBlock + 100
+
+        buyer_1 = 3
+        value_1 = 1 * 10**18 # 1 Ether
+        buyer_1_tokens = value_1 * self.exchangeRate
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_1, sender=keys[buyer_1])
 
     def test_create_tokens(self):
         self.gmt_token.startSale()
