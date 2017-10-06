@@ -19,6 +19,9 @@ test:
 flatten-token:
 	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts --output contracts/Tokens/GMTokenFlattened.sol contracts/Tokens/GMToken.sol
 
+flatten-token-with-cap:
+	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts --output contracts/Tokens/GMTokenWithCapFlattened.sol contracts/Tokens/GMTokenWithCap.sol
+
 flatten-safe:
 	solidity_flattener --solc-paths=contracts=${CURDIR}/contracts --output contracts/Safe/GMTSafeFlattened.sol contracts/Safe/GMTSafe.sol
 
