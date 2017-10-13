@@ -20,7 +20,7 @@ class AbstractTestContracts(TestCase):
         self.c = self.t.Chain()
         self.s = self.t.Chain()
         self.c.head_state.gas_limit = 10999999
-        self.c.head_state.block_number = 4097906
+        self.c.head_state.block_number = 4097900
 
     @staticmethod
     def is_hex(s):

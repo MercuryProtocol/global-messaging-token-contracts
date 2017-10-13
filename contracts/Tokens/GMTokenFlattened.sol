@@ -67,6 +67,8 @@ contract StandardToken is Token {
     }
 
     function transferFrom(address from, address to, uint value) public returns (bool) {
+        // Do not allow transfer to 0x0 or the token contract itself
+        require((to != 0x0) && (to != address(this)));
         if (balances[from] < value || allowances[from][msg.sender] < value)
             revert(); // Balance or allowance too low
         balances[to] += value;
@@ -99,9 +101,9 @@ library SafeMath {
     }
 
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
-      assert(b > 0);
+      // assert(b > 0); // Solidity automatically throws when dividing by 0
       uint256 c = a / b;
-      assert(a == b * c + a % b);
+      // assert(a == b * c + a % b); // There is no case in which this doesn't hold
       return c;
     }
 
@@ -112,7 +114,7 @@ library SafeMath {
 
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
       uint256 c = a + b;
-      assert(c >= a && c >= b);
+      assert(c >= a);
       return c;
     }
 }
@@ -126,10 +128,11 @@ contract GMToken is StandardToken {
     */
     string public constant name = "Global Messaging Token";
     string public constant symbol = "GMT";
-    uint256 public constant decimals = 18;
+    uint8 public constant decimals = 18;
+    uint256 public constant tokenUnit = 10 ** uint256(decimals);
 
     /*
-    *  Contract owner (Radical App International team)
+    *  Contract owner (Radical App International)
     */
     address public owner;
 
@@ -147,27 +150,20 @@ contract GMToken is StandardToken {
     /*
     *  Crowdsale parameters
     */
-    Stages public stage;
+    bool public isFinalized;
+    bool public isStopped;
     uint256 public startBlock;  // Block number when sale period begins
     uint256 public endBlock;  // Block number when sale period ends
     uint256 public assignedSupply;  // Total GMT tokens currently assigned
-    uint256 public constant gmtFund = 500 * (10**6) * 10**decimals;  // 500M GMT reserved for development and user growth fund 
-    uint256 public constant tokenExchangeRate = 4316;  // TODO: Units of GMT per ETH
-    uint256 public constant minCap = 100 * (10**6) * 10**decimals;  // 100M min cap to be sold during sale
+    uint256 public tokenExchangeRate;  // Units of GMT per ETH
+    uint256 public constant gmtFund = 500 * (10**6) * tokenUnit;  // 500M GMT reserved for development and user growth fund 
+    uint256 public constant minCap = 100 * (10**6) * tokenUnit;  // 100M min cap to be sold during sale
 
     /*
     *  Events
     */
     event RefundSent(address indexed _to, uint256 _value);
     event ClaimGMT(address indexed _to, uint256 _value);
-
-    enum Stages {
-        NotStarted,
-        InProgress,
-        Finalized,
-        Failed,
-        Stopped
-    }
 
     modifier onlyBy(address _account){
         require(msg.sender == _account);  
@@ -184,7 +180,12 @@ contract GMToken is StandardToken {
     }
 
     modifier minCapReached() {
-        require(assignedSupply - gmtFund >= minCap);
+        require(assignedSupply >= minCap);
+        _;
+    }
+
+    modifier minCapNotReached() {
+        require(assignedSupply < minCap);
         _;
     }
 
@@ -198,8 +199,8 @@ contract GMToken is StandardToken {
         _;
     }
 
-    modifier atStage(Stages _stage) {
-        require(stage == _stage);
+    modifier isValidState() {
+        require(!isFinalized && !isStopped);
         _;
     }
 
@@ -210,48 +211,41 @@ contract GMToken is StandardToken {
         address _ethFundAddress,
         address _gmtFundAddress,
         uint256 _startBlock,
-        uint256 _endBlock) 
+        uint256 _endBlock,
+        uint256 _tokenExchangeRate) 
         public 
     {
         require(_gmtFundAddress != 0x0);
         require(_ethFundAddress != 0x0);
+        require(_startBlock < _endBlock && _startBlock > block.number);
 
         owner = msg.sender; // Creator of contract is owner
-        stage = Stages.NotStarted; 
+        isFinalized = false; // Controls pre-sale state through crowdsale state
+        isStopped = false;  // Circuit breaker (only to be used by contract owner in case of emergency)
         ethFundAddress = _ethFundAddress;
         gmtFundAddress = _gmtFundAddress;
         startBlock = _startBlock;
         endBlock = _endBlock;
-        totalSupply = 1000 * (10**6) * 10**decimals;  // 1B total GMT tokens
-        balances[gmtFundAddress] = gmtFund;  // Deposit Radical App International share into Multi-sig
-        assignedSupply = gmtFund;  // Set starting assigned supply to amount assigned for GMT fund
-        ClaimGMT(gmtFundAddress, gmtFund);  // Log Radical App International fund
-        // As per ERC20 spec, a token contract which creates new tokens SHOULD trigger a Transfer event with the _from address
-        // set to 0x0 when tokens are created (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md)
-        Transfer(0x0, gmtFundAddress, gmtFund);
-    }
-
-    /// @notice Start sale
-    /// @dev Only allowed to be called by the owner
-    function startSale() onlyBy(owner) external {
-        stage = Stages.InProgress;
+        tokenExchangeRate = _tokenExchangeRate;
+        totalSupply = 1000 * (10**6) * tokenUnit;  // 1B total GMT tokens
+        assignedSupply = 0;  // Set starting assigned supply to 0
     }
 
     /// @notice Stop sale in case of emergency (i.e. circuit breaker)
     /// @dev Only allowed to be called by the owner
     function stopSale() onlyBy(owner) external {
-        stage = Stages.Stopped;
+        isStopped = true;
     }
 
-    /// @notice Set sale to failed state
+    /// @notice Restart sale in case of an emergency stop
     /// @dev Only allowed to be called by the owner
-    function setFailedState() onlyBy(owner) external {
-        stage = Stages.Failed;
+    function restartSale() onlyBy(owner) external {
+        isStopped = false;
     }
 
     /// @notice Create `msg.value` ETH worth of GMT
     /// @dev Only allowed to be called within the timeframe of the sale period
-    function claimTokens() respectTimeFrame registeredUser atStage(Stages.InProgress) payable external {
+    function claimTokens() respectTimeFrame registeredUser isValidState payable external {
         require(msg.value > 0);
 
         // Check that we're not over totals
@@ -259,11 +253,14 @@ contract GMToken is StandardToken {
         uint256 checkedSupply = assignedSupply.add(tokens);
 
         // Return money if we're over total token supply
-        require(checkedSupply <= totalSupply); 
+        require(checkedSupply.add(gmtFund) <= totalSupply); 
 
-        balances[msg.sender] += tokens;
+        balances[msg.sender] = balances[msg.sender].add(tokens);
         assignedSupply = checkedSupply;
         ClaimGMT(msg.sender, tokens);  // Logs token creation for UI purposes
+        // As per ERC20 spec, a token contract which creates new tokens SHOULD trigger a Transfer event with the _from address
+        // set to 0x0 when tokens are created (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md)
+        Transfer(0x0, msg.sender, tokens);
     }
 
 
@@ -283,40 +280,41 @@ contract GMToken is StandardToken {
         }
     }
 
-    /// @notice Ends the funding period and sends the ETH to Multi-sig wallet
-    /// @dev Only allowed to be called by the owner once sale period is over and the min cap is reached
-    function finalize() 
-        onlyBy(owner) 
-        atStage(Stages.InProgress) 
-        minCapReached 
-        salePeriodCompleted
-        external
-    {
-        stage = Stages.Finalized;
-
+    /// @notice Sends the ETH to ETH fund wallet and finalizes the token sale
+    function finalize() minCapReached salePeriodCompleted isValidState onlyBy(owner) external {
+        // Upon successful completion of sale, send tokens to GMT fund
+        balances[gmtFundAddress] = balances[gmtFundAddress].add(gmtFund);
+        assignedSupply = assignedSupply.add(gmtFund);
+        ClaimGMT(gmtFundAddress, gmtFund);   // Log tokens claimed by Radical App International GMT fund
+        Transfer(0x0, gmtFundAddress, gmtFund);
+        
         // In the case where not all 500M GMT allocated to crowdfund participants
         // is sold, send the remaining unassigned supply to GMT fund address,
         // which will then be used to fund the user growth pool.
         if (assignedSupply < totalSupply) {
             uint256 unassignedSupply = totalSupply.sub(assignedSupply);
-            balances[gmtFundAddress] += unassignedSupply;
+            balances[gmtFundAddress] = balances[gmtFundAddress].add(unassignedSupply);
             assignedSupply = assignedSupply.add(unassignedSupply);
+
+            ClaimGMT(gmtFundAddress, unassignedSupply);  // Log tokens claimed by Radical App International GMT fund
+            Transfer(0x0, gmtFundAddress, unassignedSupply);
         }
 
         ethFundAddress.transfer(this.balance);
+
+        isFinalized = true; // Finalize sale
     }
 
     /// @notice Allows contributors to recover their ETH in the case of a failed token sale
     /// @dev Only allowed to be called once sale period is over IF the min cap is not reached
     /// @return bool True if refund successfully sent, false otherwise
-    function refund() registeredUser atStage(Stages.Failed) salePeriodCompleted external returns (bool) {
-        require(assignedSupply - gmtFund < minCap);  // No refunds if we reached min cap
+    function refund() minCapNotReached salePeriodCompleted registeredUser isValidState external {
         require(msg.sender != gmtFundAddress);  // Radical App International not entitled to a refund
 
         uint256 gmtVal = balances[msg.sender];
         require(gmtVal > 0); // Prevent refund if sender GMT balance is 0
 
-        balances[msg.sender] -= gmtVal;
+        balances[msg.sender] = balances[msg.sender].sub(gmtVal);
         assignedSupply = assignedSupply.sub(gmtVal); // Adjust assigned supply to account for refunded amount
         
         uint256 ethVal = gmtVal.div(tokenExchangeRate); // Covert GMT to ETH
@@ -324,8 +322,6 @@ contract GMToken is StandardToken {
         msg.sender.transfer(ethVal);
         
         RefundSent(msg.sender, ethVal);  // Log successful refund 
-        
-        return true;
     }
 
     /*

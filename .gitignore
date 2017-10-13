@@ -1,13 +1,13 @@
 build
 node_modules
 venv3
-yarn-error.log
 
 # Logs
 logs
 *.log
 *.rdb
 **__pycache__
+yarn-error.log
 
 # Runtime data
 pids

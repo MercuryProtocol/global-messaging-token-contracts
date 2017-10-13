@@ -22,13 +22,13 @@ class TestContract(AbstractTestContracts):
                                                 args=(self.eth_wallet_address,
                                                 self.gmt_wallet_address,
                                                 self.startBlock,
-                                                self.endBlock))
+                                                self.endBlock,
+                                                self.exchangeRate))
         self.gmt_safe = self.create_contract('Safe/GMTSafeFlattened.sol', args=[self.gmt_token.address])
         self.c.head_state.set_balance(self.gmt_safe.address, 1 * (10**18))
         self.lockedPeriod = 6 * 30 * 60 * 60 * 24 # 180 days
 
         # Run GMToken contract
-        self.gmt_token.startSale()
         self.c.head_state.block_number = self.startBlock + 100
         buyer_1 = 4
         value_1 = 39200 * 10**18 # 39.2k Ether
