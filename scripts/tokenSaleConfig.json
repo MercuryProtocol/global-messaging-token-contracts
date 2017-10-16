@@ -4,10 +4,11 @@
     "file": "Tokens/GMToken.sol",
     "label": "GMT_TOKEN",
     "params": [
-        "0x41a4ffc368418b91db572d12d1371b0a42718f5f",
-        "0x77b6032fef6fb4c25a289c5960d58160a379cbfc",
-        4336712,
-        4336713
+        "0xd3c63094e3614aa1c9e4ef65855c1444435214ac",
+        "0xba195e58c7f5be8db8ba5fd3c34779e7939ea5b1",
+        1076592,
+        1076700,
+        50000000
       ]
   },
   {

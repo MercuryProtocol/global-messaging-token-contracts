@@ -4,7 +4,7 @@ import 'contracts/Tokens/StandardToken.sol';
 import 'contracts/Utils/SafeMath.sol';
 
 /// @title GMT Token - Main token sale contract
-/// @author Preethi Kasireddy - <preethi@preethireddy.com>
+/// @author Preethi Kasireddy - <preethi@mercuryprotocol.com>
 
 contract GMToken is StandardToken {
 

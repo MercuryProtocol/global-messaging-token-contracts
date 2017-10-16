@@ -123,10 +123,6 @@ class Transactions_Handler:
     def get_total_supply(self):
         total_supply = self.contract.call({ 'from': self._from }).totalSupply()
         self.log('End block: {}'.format(total_supply))
-    
-    def get_stage(self):
-        stage = self.contract.call({ 'from': self._from }).stage()
-        self.log('Stage: {}'.format(stage))
 
     def get_gmt_balance_of(self, address):
         balance = self.contract.call({ 'from': self._from }).balanceOf(self._from) / 10**18
@@ -148,33 +144,20 @@ class Transactions_Handler:
         change_registration_status_transaction_hash = self.contract.transact({ 'from': self._from }).changeRegistrationStatuses(addressesArray, status)
         self.log("Transaction hash: {}".format(change_registration_status_transaction_hash))
 
-    def start_sale(self):
-        start_sale_transaction_hash = self.contract.transact({ 'from': self._from }).startSale()
-        stage = self.contract.call({ 'from': self._from }).stage()
+    def restart_sale(self):
+        restart_sale_transaction_hash = self.contract.transact({ 'from': self._from }).restartSale()
         self.log("""
                     Sale started. Transaction in progress. 
-                    Current stage: {}
-                    Transaction hash: {}""".format(stage, start_sale_transaction_hash))
+                    Transaction hash: {}""".format(restart_sale_transaction_hash))
       
     def stop_sale(self):
         stop_sale_transaction_hash = self.contract.transact({ 'from': self._from }).stopSale()
-        stage = self.contract.call({ 'from': self._from }).stage()
         self.log("""
                     Sale stopped. Transaction in progress. 
-                    Current stage: {}
-                    Transaction hash: {}""".format(stage, stop_sale_transaction_hash))
-    
-    def set_failed_state(self):
-        failed_sale_transaction_hash = self.contract.transact({ 'from': self._from }).setFailedState()
-        stage = self.contract.call({ 'from': self._from }).stage()
-        self.log("""
-                    Sale stopped. Transaction in progress. 
-                    Current stage: {}
-                    Transaction hash: {}""".format(stage, failed_sale_transaction_hash))
+                    Transaction hash: {}""".format(stop_sale_transaction_hash))
 
     def claim_tokens(self, value):
         claim_tokens_transaction_hash = self.contract.transact({ 'from': self._from, 'value': value }).claimTokens()
-        stage = self.contract.call({ 'from': self._from }).stage()
         balance = self.contract.call({ 'from': self._from }).balanceOf(self._from) / 10**18
         self.log("""
                     Created tokens for {}. Transaction in progress. 
@@ -186,7 +169,6 @@ class Transactions_Handler:
     
     def finalize(self):
         finalize_transaction_hash = self.contract.transact({ 'from': self._from }).finalize()
-        stage = self.contract.call({ 'from': self._from }).stage()
         self.log("""
                     Sale finalized. Transaction in progress. 
                     Transaction hash: {}""".format(finalize_transaction_hash))
@@ -202,7 +184,6 @@ class Transactions_Handler:
         total_supply = self.contract.call({ 'from': self._from }).totalSupply()
         gmt_fund_address = self.contract.call({ 'from': self._from }).gmtFundAddress()
         eth_fund_address = self.contract.call({ 'from': self._from }).ethFundAddress()
-        stage = self.contract.call({ 'from': self._from }).stage()
 
         log_output = """
                           METADATA::
@@ -226,8 +207,7 @@ class Transactions_Handler:
                           assigned_supply,
                           total_supply,
                           gmt_fund_address,
-                          eth_fund_address,
-                          stage)
+                          eth_fund_address)
 
         self.log(log_output)
 
@@ -292,16 +272,14 @@ class Transactions_Handler:
 def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path):
     transactions_handler = Transactions_Handler(protocol, host, port, gas, gas_price, contract_addr, account, private_key_path)
     # transactions_handler.get_metadata()
-    # transactions_handler.start_sale()
+    # transactions_handler.restart_sale()
     # transactions_handler.stop_sale()
-    # transactions_handler.stop_sale()
-    transactions_handler.get_stage()
     # transactions_handler.get_assigned_supply()
     # transactions_handler.change_owner('NEW ADDRESS')
     # transactions_handler.get_transaction_receipt('TRANSACTION_HASH')
     # transactions_handler.get_nonce()
     # transactions_handler.estimate_gas()
-    # transactions_handler.change_registration_statuses(['ADDRESS_1', 'ADDRESS_2'], True)
+    # transactions_handler.change_registration_statuses(['0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c'], True)
     # transactions_handler.claim_tokens(20000)
     # transactions_handler.finalize()
 

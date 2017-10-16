@@ -3,7 +3,7 @@ pragma solidity 0.4.17;
 import 'contracts/Tokens/StandardToken.sol';
 
 // @title GMT Safe contract - Contract to record employee token allocations
-// @author Preethi Kasireddy - <preethi@preethireddy.com>
+// @author Preethi Kasireddy - <preethi@mercuryprotocol.com>
 
 // Need to deposit X number of GMT here
 contract GMTSafe {

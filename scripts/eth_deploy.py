@@ -166,7 +166,7 @@ class EthDeploy:
             if self.contract_dir:
                 file_path = '{}/{}'.format(self.contract_dir, file_path)
             bytecode, abi = self.compile_code(path=file_path)
-            self.log('Contract ABI: '.format(abi))
+            self.log('Contract ABI: {}'.format(abi))
             if not label:
                 label = file_path.split("/")[-1].split(".")[0]
 
@@ -174,7 +174,7 @@ class EthDeploy:
             # Compile code
             bytecode, abi = self.compile_code(code=sourcecode)
             # Set up contract creation transaction
-            self.log('Contract ABI: '.format(abi))
+            self.log('Contract ABI: {}'.format(abi))
 
         if params:
             translator = ContractTranslator(abi)
@@ -211,6 +211,7 @@ class EthDeploy:
                     time.sleep(5)
                 tx_response = self.web3.eth.sendTransaction(tx)
         
+        self.log('Transaction hash: {}'.format(tx_response))
         # Generate transaction receipt
         # Needs to hold before transaction receipt is registered
         time.sleep(180)
