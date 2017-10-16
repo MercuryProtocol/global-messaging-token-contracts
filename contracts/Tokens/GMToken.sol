@@ -41,8 +41,11 @@ contract GMToken is StandardToken {
     bool public isStopped;
     uint256 public startBlock;  // Block number when sale period begins
     uint256 public endBlock;  // Block number when sale period ends
+    uint256 public individualCapEndBlock;  // Block number when individual cap period ends
     uint256 public assignedSupply;  // Total GMT tokens currently assigned
     uint256 public tokenExchangeRate;  // Units of GMT per ETH
+    uint256 public individualCapInTokens;  // Individual user cap in GMT tokens
+    uint256 public constant individualCapInETH = 50;  // Individual user cap in ETH
     uint256 public constant gmtFund = 500 * (10**6) * tokenUnit;  // 500M GMT reserved for development and user growth fund 
     uint256 public constant minCap = 100 * (10**6) * tokenUnit;  // 100M min cap to be sold during sale
 
@@ -99,12 +102,14 @@ contract GMToken is StandardToken {
         address _gmtFundAddress,
         uint256 _startBlock,
         uint256 _endBlock,
-        uint256 _tokenExchangeRate) 
+        uint256 _tokenExchangeRate,
+        uint256 _individualCapEndBlock) 
         public 
     {
         require(_gmtFundAddress != 0x0);
         require(_ethFundAddress != 0x0);
         require(_startBlock < _endBlock && _startBlock > block.number);
+        require(_individualCapEndBlock > _startBlock && _individualCapEndBlock < _endBlock);
 
         owner = msg.sender; // Creator of contract is owner
         isFinalized = false; // Controls pre-sale state through crowdsale state
@@ -114,6 +119,8 @@ contract GMToken is StandardToken {
         startBlock = _startBlock;
         endBlock = _endBlock;
         tokenExchangeRate = _tokenExchangeRate;
+        individualCapEndBlock = _individualCapEndBlock;
+        individualCapInTokens = individualCapInETH.mul(tokenExchangeRate.mul(tokenUnit));
         totalSupply = 1000 * (10**6) * tokenUnit;  // 1B total GMT tokens
         assignedSupply = 0;  // Set starting assigned supply to 0
     }
@@ -135,8 +142,14 @@ contract GMToken is StandardToken {
     function claimTokens() respectTimeFrame registeredUser isValidState payable external {
         require(msg.value > 0);
 
+        uint256 tokens = msg.value.mul(tokenExchangeRate);
+
+        // If in individual cap period, ensure user is not purchasing more tokens than allowed
+        if (block.number < individualCapEndBlock) {
+            assert(balances[msg.sender].add(tokens) < individualCapInTokens);
+        }
+
         // Check that we're not over totals
-        uint256 tokens = msg.value.mul(tokenExchangeRate); 
         uint256 checkedSupply = assignedSupply.add(tokens);
 
         // Return money if we're over total token supply

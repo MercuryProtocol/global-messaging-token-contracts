@@ -15,13 +15,16 @@ class TestContract(AbstractTestContracts):
         self.startBlock = 4097906
         self.exchangeRate = 4316
         self.saleDuration = round((30*60*60*24)/18)
+        self.capDuration = round((2*60*60)/18)
         self.endBlock = self.startBlock + self.saleDuration
+        self.individualCapEndBlock = self.startBlock + self.capDuration
         self.gmt_token= self.create_contract('Tokens/GMTokenFlattened.sol',
                                                 args=(self.eth_wallet_address,
                                                 self.gmt_wallet_address,
                                                 self.startBlock,
                                                 self.endBlock,
-                                                self.exchangeRate))
+                                                self.exchangeRate,
+                                                self.individualCapEndBlock))
         self.owner = self.gmt_token.owner()
         self.gmtFund = 500000000 * (10**18)
         self.totalSupply = 1000000000 * (10**18)
@@ -41,6 +44,8 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.tokenExchangeRate(), self.exchangeRate)
         self.assertEqual(self.gmt_token.startBlock(), self.startBlock)
         self.assertEqual(self.gmt_token.endBlock(), self.endBlock)
+        self.assertEqual(self.gmt_token.individualCapEndBlock(), self.individualCapEndBlock)
+        self.assertEqual(self.gmt_token.individualCapInTokens(), self.exchangeRate * self.gmt_token.individualCapInETH() * self.gmt_token.tokenUnit())
         self.assertEqual(self.gmt_token.isFinalized(), False)
         self.assertEqual(self.gmt_token.isStopped(), False)
         self.assertEqual(self.gmt_token.owner(), '0x' + accounts[0].hex())
@@ -97,7 +102,7 @@ class TestContract(AbstractTestContracts):
 
     def test_create_tokens_more_than_total_supply(self):
         # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         value_1 = 100000 * 10**18 # 100K Ether
@@ -116,7 +121,7 @@ class TestContract(AbstractTestContracts):
     
     def test_create_tokens_unregistered(self):
         # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         value_1 = 1 * 10**18 # 1 Ether
@@ -125,9 +130,38 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_1, sender=keys[buyer_1])
 
-    def test_create_tokens(self):
-        # Move forward a few blocks to be within funding time frame
+    def test_create_tokens_more_than_individual_cap(self):
+        # Move forward a few blocks to be within funding time frame AND within individual cap period
         self.c.head_state.block_number = self.startBlock + 100
+
+        buyer_1 = 3
+        value_1 = 51 * 10**18 # 1 Ether
+        buyer_1_tokens = value_1 * self.exchangeRate
+        # Register user for participation
+        self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_1, sender=keys[buyer_1])
+
+    def test_create_tokens_under_individual_cap(self):
+        # Move forward a few blocks to be within funding time frame AND within individual cap period
+        self.c.head_state.block_number = self.startBlock + 100
+
+        buyer_1 = 4
+        value_1 = 49 * 10**18 # 1 Ether
+        buyer_1_tokens = value_1 * self.exchangeRate
+        # Register user for participation
+        self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+
+        self.assertEqual(self.gmt_token.assignedSupply(), buyer_1_tokens)
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
+
+    def test_create_tokens(self):
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         value_1 = 1 * 10**18 # 1 Ether
@@ -142,8 +176,8 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
 
     def test_buying_after_circuit_breaker(self):
-        # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.startBlock + 1000
         self.gmt_token.stopSale()
         # Raises if try to finalize sale when it's not in progress
         self.assertEqual(self.gmt_token.isStopped(), True)
@@ -162,8 +196,8 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_token.finalize)
 
     def test_unauthorized_finalize(self):
-        # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         buyer_2 = 4
@@ -189,8 +223,8 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_token.finalize, sender=keys[3])
 
     def test_finalize_mincap_not_reached(self):
-        # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         buyer_2 = 4
@@ -216,8 +250,8 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_token.finalize)
     
     def test_finalize(self):
-        # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         buyer_2 = 4
@@ -270,8 +304,8 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3 + starting_balance)
     
     def test_refund_after_finalized(self):
-        # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         buyer_2 = 4
@@ -297,7 +331,7 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[buyer_1])
 
     def test_refund_after_mincap_reached(self):
-        # Move forward a few blocks to be within funding time frame
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
         self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
@@ -323,8 +357,8 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[buyer_1])
     
     def test_refund_for_gmtFund(self):
-        # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         buyer_2 = 4
@@ -349,8 +383,8 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[1])
 
     def test_refund_when_sender_balance_zero(self):
-        # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         buyer_2 = 4
@@ -378,8 +412,8 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_token.refund, sender=keys[buyer_3])
 
     def test_refund(self):
-        # Move forward a few blocks to be within funding time frame
-        self.c.head_state.block_number = self.startBlock + 100
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.startBlock + 1000
 
         buyer_1 = 3
         buyer_2 = 4

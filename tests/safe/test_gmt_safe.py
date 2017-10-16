@@ -16,20 +16,23 @@ class TestContract(AbstractTestContracts):
         self.test_allocation_account_checksum_encoded = checksum_encode(self.test_allocation_account)
         self.startBlock = 4097906
         self.saleDuration = round((30*60*60*24)/18)
+        self.capDuration = round((2*60*60)/18)
         self.endBlock = self.startBlock + self.saleDuration
+        self.individualCapEndBlock = self.startBlock + self.capDuration
         self.exchangeRate = 4316
         self.gmt_token= self.create_contract('Tokens/GMTokenFlattened.sol',
                                                 args=(self.eth_wallet_address,
                                                 self.gmt_wallet_address,
                                                 self.startBlock,
                                                 self.endBlock,
-                                                self.exchangeRate))
+                                                self.exchangeRate,
+                                                self.individualCapEndBlock))
         self.gmt_safe = self.create_contract('Safe/GMTSafeFlattened.sol', args=[self.gmt_token.address])
         self.c.head_state.set_balance(self.gmt_safe.address, 1 * (10**18))
         self.lockedPeriod = 6 * 30 * 60 * 60 * 24 # 180 days
 
         # Run GMToken contract
-        self.c.head_state.block_number = self.startBlock + 100
+        self.c.head_state.block_number = self.startBlock + 1000
         buyer_1 = 4
         value_1 = 39200 * 10**18 # 39.2k Ether
         buyer_1_tokens = value_1 * self.exchangeRate
@@ -53,7 +56,7 @@ class TestContract(AbstractTestContracts):
 
     def test_unauthorized_unlock(self):
         # Raises if someone without allocations tries to unlock
-        self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 100
+        self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 1000
         self.assertRaises(TransactionFailed, self.gmt_safe.unlock, sender=keys[8])
 
     def test_unlock_before_unlock_period_ends(self):
