@@ -49,7 +49,7 @@ contract GMToken is StandardToken {
     uint256 public constant baseEthCapPerAddress = 10 ether;  // Individual user cap in ETH
     uint256 public constant blocksInFirstCapPeriod = 2000;  // Length in blocks for first cap period
     uint256 public constant blocksInSecondCapPeriod = 1000;  // Length in blocks for second cap period
-    uint256 public constant gasLimitInWei = 50000000000 wei; //  Limit gas price of 50 Gwei for individual cap period 
+    uint256 public constant gasLimitInWei = 51000000000 wei; //  Limit gas price of 50 Gwei for individual cap period 
     uint256 public constant gmtFund = 500 * (10**6) * tokenUnit;  // 500M GMT reserved for development and user growth fund 
     uint256 public constant minCap = 100 * (10**6) * tokenUnit;  // 100M min cap to be sold during sale
 
@@ -153,10 +153,14 @@ contract GMToken is StandardToken {
         }
     }
 
+    /// @dev Fallback function can be used to buy tokens
+    function () payable {
+        claimTokens();
+    }
 
     /// @notice Create `msg.value` ETH worth of GMT
     /// @dev Only allowed to be called within the timeframe of the sale period
-    function claimTokens() respectTimeFrame registeredUser isValidState payable external {
+    function claimTokens() respectTimeFrame registeredUser isValidState payable public {
         require(msg.value > 0);
 
         uint256 tokens = msg.value.mul(tokenExchangeRate);
