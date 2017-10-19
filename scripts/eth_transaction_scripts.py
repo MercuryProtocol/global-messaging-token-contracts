@@ -118,11 +118,11 @@ class Transactions_Handler:
 
     def get_assigned_supply(self):
         assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply()
-        self.log('End block: {}'.format(assigned_supply))
+        self.log('Assigned supply: {}'.format(assigned_supply))
     
     def get_total_supply(self):
         total_supply = self.contract.call({ 'from': self._from }).totalSupply()
-        self.log('End block: {}'.format(total_supply))
+        self.log('Total supply: {}'.format(total_supply))
 
     def get_gmt_balance_of(self, address):
         balance = self.contract.call({ 'from': self._from }).balanceOf(self._from) / 10**18
@@ -143,6 +143,10 @@ class Transactions_Handler:
     def change_registration_statuses(self, addressesArray, status):
         change_registration_status_transaction_hash = self.contract.transact({ 'from': self._from }).changeRegistrationStatuses(addressesArray, status)
         self.log("Transaction hash: {}".format(change_registration_status_transaction_hash))
+
+    def is_registered(self, address):
+        registered = self.contract.call({ 'from': self._from }).registered(address)
+        self.log('Is {} Registered: {}'.format(address, registered))
 
     def restart_sale(self):
         restart_sale_transaction_hash = self.contract.transact({ 'from': self._from }).restartSale()
@@ -184,6 +188,7 @@ class Transactions_Handler:
         total_supply = self.contract.call({ 'from': self._from }).totalSupply()
         gmt_fund_address = self.contract.call({ 'from': self._from }).gmtFundAddress()
         eth_fund_address = self.contract.call({ 'from': self._from }).ethFundAddress()
+        exchange_rate = self.contract.call({ 'from': self._from }).tokenExchangeRate()
 
         log_output = """
                           METADATA::
@@ -197,7 +202,7 @@ class Transactions_Handler:
                           Total supply: {}
                           GMT fund address: {}
                           ETH fund address: {} 
-                          State: {} """.format(
+                          Exchange rate: {}""".format(
                           name,
                           symbol,
                           decimals,
@@ -207,7 +212,8 @@ class Transactions_Handler:
                           assigned_supply,
                           total_supply,
                           gmt_fund_address,
-                          eth_fund_address)
+                          eth_fund_address,
+                          exchange_rate)
 
         self.log(log_output)
 
@@ -279,7 +285,9 @@ def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_
     # transactions_handler.get_transaction_receipt('TRANSACTION_HASH')
     # transactions_handler.get_nonce()
     # transactions_handler.estimate_gas()
-    # transactions_handler.change_registration_statuses(['0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c'], True)
+    # transactions_handler.is_registered('0x3f2448C5B367A5aD372D1b9D1cEB17E19E0F8577')
+    addresses = ["0x20ce23c5eB560E3ECB2BEf048609b89B6a44C3fB","0x25E6931b8Afb69fE53CEaBF735586138eC1B706F","0x74d66d84B88eA71108c7398aceC26530F1B64E0b","0x22ab445A54FeE7fe41B9EB559Dde71Dd1D91991A","0xa3A13AcF461f494240Ae54801fDEd688D2e2b16a","0x5b51f89c077ccA89b146022e8de9f72deEcd7955","0xf3258938D09AE9aaa2D6d3E89CE1244da4474950","0xddD7347A8d3605F35A6113c7513e388e1A51bCB5","0xd452b938c37d965154b3f52fBb6D13e032562E2e","0x490D8abA74Ecc9664CAf5F3ae7f7dFf57934fEE8","0xc52E6380983Fd52E663E8B596391Df65e3d1C02F","0xA862112b2dC553a73Efb40155879eb1bB2Caca86","0xC61Ba4DaAa2F3446D367D3e701C47189C1B223b8","0xe692b22a006ad7A3cf392C9dc40F56C45e155df5","0x1b2d6c5A3B2bBBd5BD9688eCafDdC7920E53ab61","0x524a063fe0a1D52ba6E71bF813233590dd8Efe41","0x50414B85E1F59beE5639B2d0ff9eAd3695079FDe","0x179D1A2543745958D7f90A5c0040e467C25cd4fE","0x88B164e589331Db3AAEc043c6d8da00e36853b34","0x2D7DAFeC5C81d0046410845b0d15c00074bb73a1","0xC4dFf0CAb36f3a10e965E9028ecac073b25f2AB5","0x8eB1b5f4369c9AfB4B5482EdcF7d802195D5Db89","0xE57798f2e67Ded880Bd5cF524418eAE3fbfA8CA6","0xDC65205f54c806535375d4eEFDED606Cd957e66B","0x6494bC076E14828ab0b119b94C7731222fF115a9","0xcD2C45d2dE4EcB845B21F9A8759D0D9E67b45ebd","0x053141C3e486d30832B4432a327A3eb4e2CD3f09","0xc3BEE64137FF35b735c4F4d0d0a07dAa50c59bf1","0x0c19ff8d1e915cd62A638683909EfE30e63207E0","0x726d95C858dF19DA927C9CE1D1d1d224Cc4574bD","0x49adFb135996449A23e236B199BC6cFfBE92bC78","0x2b251d772e2650e84289Ba65a8e5F4005e800dbF","0xa6A72baA69eD88FE6da8cBd932267dF426735A56","0xaC71C6CAe468C7ffc72A9813E32cd317BbE309aD","0x4eF68F0FaD563190be9c8ccD83c09A6771d33566","0x364842C8ab60BDa9c490DA6ECE9568fd32461c24","0xA7Db568247b2050AD44005b283b301d832ceC653","0x39BB6d09afd5DB0F432c8072C14845eA29a09272","0x3E6B4eCe4931d9DeEFaaD665fd2260DdD40330a9","0x3dbe0a3e0fa494c5c012cf5b6b2caa5ed5312376","0x1D753316dcee2dF1120A1CaeC256907100d0b32F","0xDcf213cF5FA361C0D56e03b5aE811Bd1F105C0d7","0x331C01A1866f4AC4Cf7C13Bd87631Ab6ca5D2307","0x708746d07fBFea9eB83583452940B84438C5a1EB","0x9f5a3CfA52c0719e96922Aa28a0F450636B094d1","0xD993360912CCb7F229baaE689f5C24dc5A7072Dd","0xF86A27283c7C4Ef1C676a0E6b810Ac8ccCc39ECb","0x543424f9Cf556285Ddb9107910B5A1c10f6F4bD6","0xd642d098EE4e4eCed24B12BeDcD06dAc20f5e541","0x4870bB31A892374a3E81FA17833C10946DDB5223","0x51D390F35001969B2db7EA0b5Dee970ec55d3647","0x6d8377467574d81D5E6d7F05FfEE191fcd0cE0d8","0x04D57c783101d40859e0433a3488cDF1CA1f29b6","0x0790C57C2109705627883dB512dD118f046aB5F6","0x924C251902924c7DBd4cBF166d42757fB2d146cb","0x2244D06599c38EF6b1ca2F334735BFea4CE45392","0xF1D0bBe6D450F4B2703388a81F144BFD1d1558C1","0x924C2e5d25fAf0225122bF62CFfe99e27312E45a","0x9A0b50EFECfb37E42DB9A603893003B91FdB5e87","0x5e40682a189314EE0C15E28FebE301E51EA31148","0x6A5D761F8C0766763F4BAc213E1B44cA120c83DE","0xc81d14595feeF32f476cb56A805eF0139354A5b9","0x4A254BCA4F7eA6C8f7dbb6282a3d98f7c084BDE6","0x2F39437CD069ee21821eba2C9E4A4Fa853E8F144","0xE84fe89D0E2638AEe6fEee94Ed73bdbD35B18442","0x6EcEeDA2D620B0F0C8aF615984007737B7dD25D0","0x04eFdcfD5c1AD83E1793F370A6A0Ba9d748AA2F9","0xFAB3F2796cbA34b65ef40653e1f2DDb48Ddced90","0x7f71f6b28Eb2f60691c0D3DEB016106046c21d15","0xdf031133Fa7cF375dEC4bE7C37b097E19003519f","0x004736B7482D8f8E62B9bc0e800Dc80813E7E84D","0xda24669C6395Eab66a857E36CCb48ABD30a196ee","0xa5C1D8DCD76aA8Fc7624A9c888aBD8F06a261839","0x3dDeDD73c58Fd6dd34Ba56d8bFffD27ff3594F72","0x8D3eA82192AFAAeCF3675ED7686De1d3D83005de","0x00a65c76665C4E5094c9B1e70EE7021eb95e0C42","0x3F4aF4c68AA4Adb99606A2c05C07BFa6528D2341","0x83905F205a22cff5f790D06b8D1c9Fc49f14eC40","0xDCf48f8AB66B7a15410847F9BcFf6fc989a36bb7","0xd6C0C5A07f42E07089A59a79476AF756F310Cb81","0x7F50397078Ad4dA62c4e2eB6A5e4503D36E50bB2","0x04A853C5551ce0C1AAcdAdB82b3723c695A7716D","0x92f5B1664E03F1b8fF617C86905fd17e0B18E76F","0x953Cd3772C127B15D40f7c8b3340cff9fa5df932","0x7b687BfB62E2AbB56269Df7c5aADAfB706AA316A","0x8bD865bE7082d9764ff34366882542fA5Bfe9725","0x13Ce9A262EFb94B277e622c90405Ae8C93C1A4e2","0x74430A7DC30960952075e480AD841B6A092765d1","0x726C2EE3bb63B6e9B9b0229cCAa02F691BB0b5dd","0x378B2d21E485d7098a2967c01F3F58007C09aC27","0x3ECBA7de7E9aB4EC1FFd409146F8EDC892dDcEd7","0x9DA74B6EB82484c8592AdF49352fb5014A5Dc6AA","0x68F3e88D97e6F70B1e8ffAE367d24f5a02022cfA","0xB0195d54910840Ed7BAcE08d79BE9C34Bb93d3eC","0x422d5f48200fc1BaEf529bA7B9b176303e957A82","0x00d6041404eBC2A778b48c29F952244b2815f0b5","0xee083EDCADF67065aa51db510d643E8c0dB6f5A5"]
+    transactions_handler.change_registration_statuses(addresses, True)
     # transactions_handler.claim_tokens(20000)
     # transactions_handler.finalize()
 
