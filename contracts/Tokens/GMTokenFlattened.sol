@@ -146,6 +146,12 @@ contract GMToken is StandardToken {
     *  List of registered participants
     */
     mapping (address => bool) public registered;
+
+    /*
+    *  List of allocations per address
+    *  Same as balances[], except used for individual cap calculations, 
+    *  because users can transfer tokens out during sale and reset token count in balances.
+    */
     mapping (address => uint) public allocated;
 
     /*
@@ -198,12 +204,12 @@ contract GMToken is StandardToken {
     }
 
     modifier respectTimeFrame() {
-        require((block.number >= startBlock) && (block.number < endBlock));
+        require(block.number >= startBlock && block.number < endBlock);
         _;
     }
 
     modifier salePeriodCompleted() {
-        require(block.number >= endBlock);
+        require(block.number >= endBlock || assignedSupply.add(gmtFund) == totalSupply);
         _;
     }
 

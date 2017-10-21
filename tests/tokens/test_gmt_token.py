@@ -13,7 +13,7 @@ class TestContract(AbstractTestContracts):
         self.gmt_wallet_address = accounts[1]
         self.eth_wallet_address = accounts[2]
         self.startBlock = 4097906
-        self.exchangeRate = 4316
+        self.exchangeRate = 5000
         self.saleDuration = round((30*60*60*24)/18)
         self.endBlock = self.startBlock + self.saleDuration
         self.gmt_token= self.create_contract('Tokens/GMTokenFlattened.sol',
@@ -49,10 +49,16 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.owner(), '0x' + accounts[0].hex())
 
     def test_create_token_before_sale_starts(self):
+        self.c.head_state.block_number = self.startBlock - 1
         buyer_1 = 3
+        value_1 = 1 * 10**18 # 1 Ether
+        buyer_1_tokens = value_1 * self.exchangeRate
+
         # Register user for participation
         self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
-        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, sender=keys[buyer_1])
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_1, sender=keys[buyer_1])
 
     def test_unauthorized_stop_sale(self): # circuit breaker
         # Raises if anyone but the owner tries to start the sale
@@ -358,6 +364,59 @@ class TestContract(AbstractTestContracts):
 
         # Should fail when min cap is not reached (i.e. 90 + 30 + 200 < minCap / exchangeRate)
         self.assertRaises(TransactionFailed, self.gmt_token.finalize)
+    
+    # def test_finalize_after_mincap_before_sale_period(self):
+    #     # Move forward a few blocks to be within funding time frame AFTER individual cap period
+    #     self.c.head_state.block_number = self.gmt_token.secondCapEndingBlock() + 1
+
+    #     buyer_1 = 3
+    #     buyer_2 = 4
+    #     buyer_3 = 5
+    #     value_1 = 50 * 10**18 # 90 Ether
+    #     value_2 = 50 * 10**18 # 30 Ether
+    #     value_3 = round((self.gmt_token.totalSupply() - self.gmtFund) * (1/self.exchangeRate)) - value_1 - value_2 - 16777216 # remaining Ether
+
+    #     # Register users for participation
+    #     targets = [accounts[buyer_1], accounts[buyer_2], accounts[buyer_3]]
+    #     self.gmt_token.changeRegistrationStatuses(targets, True)
+
+    #     buyer_1_tokens = value_1 * self.exchangeRate
+    #     buyer_2_tokens = value_2 * self.exchangeRate
+    #     buyer_3_tokens = value_3 * self.exchangeRate
+    #     print(value_3 - ((self.gmt_token.totalSupply() - self.gmtFund - buyer_1_tokens - buyer_2_tokens) * (1/self.exchangeRate)))
+    #     starting_balance = self.c.head_state.get_balance(self.eth_wallet_address)
+
+    #     self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+    #     self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
+    #     self.c.head_state.set_balance(accounts[buyer_3], value_3 * 2)
+
+    #     self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+    #     self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
+    #     self.gmt_token.claimTokens(value=value_3, sender=keys[buyer_3])
+
+    #      # Verify we've updated the total assigned supply of GMT appropriately
+    #     self.assertEqual(self.gmt_token.assignedSupply(), buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
+
+    #     # Set block number to before end block
+    #     self.c.head_state.block_number = self.endBlock - 10
+    #     print(self.gmt_token.totalSupply() - self.gmt_token.assignedSupply() - self.gmtFund)
+    #     # Should work when assigned supply is total supply
+    #     self.gmt_token.finalize()
+    #     self.assertEqual(self.gmt_token.isFinalized(), True)
+
+    #     # Verify buyers received the appropriate token amount
+    #     self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
+    #     self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_2]), buyer_2_tokens)
+    #     self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_3]), buyer_3_tokens)
+
+    #     # Verify GMT funds were sent to GMT fund address
+    #     self.assertEqual(self.gmt_token.balanceOf(self.gmt_wallet_address), self.gmtFund)
+
+    #     # Verify we've updated the total assigned supply of GMT to account for unassigned supply being sent to GMT fund
+    #     self.assertEqual(self.gmt_token.assignedSupply(), self.totalSupply)
+
+    #     # Verify ETH balance of ETH wallet address
+    #     self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3 + starting_balance)
     
     def test_finalize(self):
         # Move forward a few blocks to be within funding time frame AFTER individual cap period
