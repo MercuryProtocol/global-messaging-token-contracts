@@ -117,8 +117,8 @@ class Transactions_Handler:
         self.log('End block: {}'.format(end_block))
 
     def get_assigned_supply(self):
-        assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply()
-        self.log('Assigned supply: {}'.format(assigned_supply))
+        assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply() / 10**18
+        self.log('Assigned supply (adjusted for token unit): {}'.format(assigned_supply))
     
     def get_total_supply(self):
         total_supply = self.contract.call({ 'from': self._from }).totalSupply()
@@ -300,13 +300,14 @@ def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_
     # transactions_handler.get_transaction_receipt('TRANSACTION_HASH')
     # transactions_handler.get_nonce()
     # transactions_handler.estimate_gas()
-    # transactions_handler.is_registered('0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c')
-    addresses_1 = ["0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c"]
+    # transactions_handler.is_registered('ADDRESS')
+    # transactions_handler.is_registered('ADDRESS')
+    addresses_1 = []
     addresses_2 = []
     # transactions_handler.change_registration_statuses(addresses_1, True)
-    # transactions_handler.claim_tokens(500000000000000000)
-    transactions_handler.get_gmt_balance_of("0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c")
-    # transactions_handler.finalize()
+    # transactions_handler.claim_tokens(1100000000000000000)
+    # transactions_handler.get_gmt_balance_of("0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c")
+    transactions_handler.finalize()
 
 if __name__ == '__main__':
   setup()

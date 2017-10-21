@@ -189,7 +189,7 @@ class EthDeploy:
                   'value':value,
                   'data':self.add_0x(bytecode), 
                   'gas':self.gas,
-                  'gasprice':self.gas_price}
+                  'gas_price':self.gas_price}
 
         # Send contract creation transaction
         if self.private_key:
