@@ -284,7 +284,7 @@ class Transactions_Handler:
 @click.option('--host', default="localhost", help='Ethereum node host')
 @click.option('--port', default='8545', help='Ethereum node port')
 @click.option('--gas', default=4000000, help='Transaction gas')
-@click.option('--gas-price', default=20000000000, help='Transaction gas price')
+@click.option('--gas-price', default=31000000000, help='Transaction gas price')
 @click.option('--contract-addr', help='Address of contract to interact with')
 @click.option('--account', help='Default account used as from parameter')
 @click.option('--private-key-path', help='Path to private key')
@@ -294,18 +294,18 @@ def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_
     # transactions_handler.restart_sale()
     # transactions_handler.stop_sale()
     # transactions_handler.is_stopped()
-    transactions_handler.is_finalized()
+    # transactions_handler.is_finalized()
     # transactions_handler.get_assigned_supply()
     # transactions_handler.change_owner('NEW ADDRESS')
     # transactions_handler.get_transaction_receipt('TRANSACTION_HASH')
     # transactions_handler.get_nonce()
     # transactions_handler.estimate_gas()
-    # transactions_handler.is_registered('0x4304F97182319DC7E467a42fd12814ebbc0b3fBb')
-    addresses_1 = []
+    # transactions_handler.is_registered('0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c')
+    addresses_1 = ["0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c"]
     addresses_2 = []
-    # transactions_handler.change_registration_statuses(addresses_2, True)
+    # transactions_handler.change_registration_statuses(addresses_1, True)
     # transactions_handler.claim_tokens(500000000000000000)
-    transactions_handler.get_gmt_balance_of("ADDRESS")
+    transactions_handler.get_gmt_balance_of("0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c")
     # transactions_handler.finalize()
 
 if __name__ == '__main__':
