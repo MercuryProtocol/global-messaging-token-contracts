@@ -228,6 +228,33 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.assignedSupply(), buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
 
+    def test_create_tokens_then_transfer_to_another_account(self):
+        # Move forward a few blocks to be within funding time frame AND within first individual cap period
+        self.c.head_state.block_number = self.gmt_token.firstCapEndingBlock() - 10
+
+        buyer_1 = 4
+        value_1 = 6 * 10**18 # 1 Ether
+        buyer_1_tokens = value_1 * self.exchangeRate
+        # Register user for participation
+        self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+
+        self.assertEqual(self.gmt_token.assignedSupply(), buyer_1_tokens)
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
+
+        self.gmt_token.transfer("0xd6189c09b3708cee1d35d00de32b02abc7fbd55d", buyer_1_tokens, sender=keys[buyer_1])
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), 0)
+        
+        # Buyer tries to buy again during cap period, but more than allowed
+        value_1_more = 5 * 10**18 # 1 Ether
+        buyer_1_tokens_more = value_1 * self.exchangeRate
+
+        self.c.head_state.set_balance(accounts[buyer_1], value_1_more * 2)
+        self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_1_more, sender=keys[buyer_1])
+
+
     def test_create_tokens_over_gas_limit(self):
         # Move forward a few blocks to be within funding time frame AND within first individual cap period
         self.c.head_state.block_number = self.gmt_token.firstCapEndingBlock() - 1
