@@ -263,7 +263,7 @@ class EthDeploy:
 @click.option('--host', default="localhost", help='Ethereum node host')
 @click.option('--port', default='8545', help='Ethereum node port')
 @click.option('--gas', default=4000000, help='Transaction gas')
-@click.option('--gas-price', default=20000000000, help='Transaction gas price')
+@click.option('--gas-price', default=31000000000, help='Transaction gas price')
 @click.option('--contract-dir', default="contracts/", help='Path to contracts directory')
 @click.option('--optimize', is_flag=True, help='Use solidity optimizer to compile code')
 @click.option('--account', help='Default account used as from parameter')

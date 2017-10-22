@@ -117,15 +117,15 @@ class Transactions_Handler:
         self.log('End block: {}'.format(end_block))
 
     def get_assigned_supply(self):
-        assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply()
-        self.log('End block: {}'.format(assigned_supply))
+        assigned_supply = self.contract.call({ 'from': self._from }).assignedSupply() / 10**18
+        self.log('Assigned supply (adjusted for token unit): {}'.format(assigned_supply))
     
     def get_total_supply(self):
         total_supply = self.contract.call({ 'from': self._from }).totalSupply()
-        self.log('End block: {}'.format(total_supply))
+        self.log('Total supply: {}'.format(total_supply))
 
     def get_gmt_balance_of(self, address):
-        balance = self.contract.call({ 'from': self._from }).balanceOf(self._from) / 10**18
+        balance = self.contract.call({ 'from': self._from }).balanceOf(address) / 10**18
         self.log('Address: {} | Balance: {}'.format(address, balance))
 
     def get_eth_balance_of(self, address):
@@ -144,10 +144,14 @@ class Transactions_Handler:
         change_registration_status_transaction_hash = self.contract.transact({ 'from': self._from }).changeRegistrationStatuses(addressesArray, status)
         self.log("Transaction hash: {}".format(change_registration_status_transaction_hash))
 
+    def is_registered(self, address):
+        registered = self.contract.call({ 'from': self._from }).registered(address)
+        self.log('Is {} Registered: {}'.format(address, registered))
+
     def restart_sale(self):
         restart_sale_transaction_hash = self.contract.transact({ 'from': self._from }).restartSale()
         self.log("""
-                    Sale started. Transaction in progress. 
+                    Sale restarted. Transaction in progress. 
                     Transaction hash: {}""".format(restart_sale_transaction_hash))
       
     def stop_sale(self):
@@ -155,6 +159,16 @@ class Transactions_Handler:
         self.log("""
                     Sale stopped. Transaction in progress. 
                     Transaction hash: {}""".format(stop_sale_transaction_hash))
+
+    def is_stopped(self):
+        is_stopped = self.contract.call({ 'from': self._from }).isStopped()
+        self.log("""
+                    Sale stopped: {}""".format(is_stopped))
+
+    def is_finalized(self):
+        is_finalized = self.contract.call({ 'from': self._from }).isFinalized()
+        self.log("""
+                    Sale finalized: {}""".format(is_finalized))
 
     def claim_tokens(self, value):
         claim_tokens_transaction_hash = self.contract.transact({ 'from': self._from, 'value': value }).claimTokens()
@@ -184,6 +198,8 @@ class Transactions_Handler:
         total_supply = self.contract.call({ 'from': self._from }).totalSupply()
         gmt_fund_address = self.contract.call({ 'from': self._from }).gmtFundAddress()
         eth_fund_address = self.contract.call({ 'from': self._from }).ethFundAddress()
+        exchange_rate = self.contract.call({ 'from': self._from }).tokenExchangeRate()
+        baseTokenCapPerAddress = self.contract.call({ 'from': self._from }).baseTokenCapPerAddress()
 
         log_output = """
                           METADATA::
@@ -197,7 +213,8 @@ class Transactions_Handler:
                           Total supply: {}
                           GMT fund address: {}
                           ETH fund address: {} 
-                          State: {} """.format(
+                          Exchange rate: {}
+                          Base token cap per address: {}""".format(
                           name,
                           symbol,
                           decimals,
@@ -207,7 +224,9 @@ class Transactions_Handler:
                           assigned_supply,
                           total_supply,
                           gmt_fund_address,
-                          eth_fund_address)
+                          eth_fund_address,
+                          exchange_rate,
+                          baseTokenCapPerAddress)
 
         self.log(log_output)
 
@@ -265,7 +284,7 @@ class Transactions_Handler:
 @click.option('--host', default="localhost", help='Ethereum node host')
 @click.option('--port', default='8545', help='Ethereum node port')
 @click.option('--gas', default=4000000, help='Transaction gas')
-@click.option('--gas-price', default=20000000000, help='Transaction gas price')
+@click.option('--gas-price', default=31000000000, help='Transaction gas price')
 @click.option('--contract-addr', help='Address of contract to interact with')
 @click.option('--account', help='Default account used as from parameter')
 @click.option('--private-key-path', help='Path to private key')
@@ -274,14 +293,21 @@ def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_
     # transactions_handler.get_metadata()
     # transactions_handler.restart_sale()
     # transactions_handler.stop_sale()
+    # transactions_handler.is_stopped()
+    # transactions_handler.is_finalized()
     # transactions_handler.get_assigned_supply()
     # transactions_handler.change_owner('NEW ADDRESS')
     # transactions_handler.get_transaction_receipt('TRANSACTION_HASH')
     # transactions_handler.get_nonce()
     # transactions_handler.estimate_gas()
-    # transactions_handler.change_registration_statuses(['0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c'], True)
-    # transactions_handler.claim_tokens(20000)
-    # transactions_handler.finalize()
+    # transactions_handler.is_registered('ADDRESS')
+    # transactions_handler.is_registered('ADDRESS')
+    addresses_1 = []
+    addresses_2 = []
+    # transactions_handler.change_registration_statuses(addresses_1, True)
+    # transactions_handler.claim_tokens(1100000000000000000)
+    # transactions_handler.get_gmt_balance_of("0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c")
+    transactions_handler.finalize()
 
 if __name__ == '__main__':
   setup()

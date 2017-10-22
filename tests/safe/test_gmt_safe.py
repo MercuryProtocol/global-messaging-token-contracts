@@ -29,7 +29,7 @@ class TestContract(AbstractTestContracts):
         self.lockedPeriod = 6 * 30 * 60 * 60 * 24 # 180 days
 
         # Run GMToken contract
-        self.c.head_state.block_number = self.startBlock + 100
+        self.c.head_state.block_number = self.gmt_token.secondCapEndingBlock() + 1
         buyer_1 = 4
         value_1 = 39200 * 10**18 # 39.2k Ether
         buyer_1_tokens = value_1 * self.exchangeRate
@@ -53,7 +53,7 @@ class TestContract(AbstractTestContracts):
 
     def test_unauthorized_unlock(self):
         # Raises if someone without allocations tries to unlock
-        self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 100
+        self.c.head_state.timestamp = self.c.head_state.timestamp + self.lockedPeriod + 1000
         self.assertRaises(TransactionFailed, self.gmt_safe.unlock, sender=keys[8])
 
     def test_unlock_before_unlock_period_ends(self):

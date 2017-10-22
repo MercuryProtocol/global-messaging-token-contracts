@@ -9,7 +9,7 @@ import 'contracts/Tokens/StandardToken.sol';
 contract GMTSafe {
 
   /*
-    *  GMTSafe parameters
+  *  GMTSafe parameters
   */
   mapping (address => uint256) allocations;
   uint256 public unlockDate;

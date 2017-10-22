@@ -148,14 +148,28 @@ contract GMToken is StandardToken {
     mapping (address => bool) public registered;
 
     /*
+    *  List of token purchases per address
+    *  Same as balances[], except used for individual cap calculations, 
+    *  because users can transfer tokens out during sale and reset token count in balances.
+    */
+    mapping (address => uint) public purchases;
+
+    /*
     *  Crowdsale parameters
     */
     bool public isFinalized;
     bool public isStopped;
     uint256 public startBlock;  // Block number when sale period begins
     uint256 public endBlock;  // Block number when sale period ends
+    uint256 public firstCapEndingBlock;  // Block number when first individual user cap period ends
+    uint256 public secondCapEndingBlock;  // Block number when second individual user cap period ends
     uint256 public assignedSupply;  // Total GMT tokens currently assigned
     uint256 public tokenExchangeRate;  // Units of GMT per ETH
+    uint256 public baseTokenCapPerAddress;  // Base user cap in GMT tokens
+    uint256 public constant baseEthCapPerAddress = 7 ether;  // Base user cap in ETH
+    uint256 public constant blocksInFirstCapPeriod = 2000;  // Block length for first cap period
+    uint256 public constant blocksInSecondCapPeriod = 1000;  // Block length for second cap period
+    uint256 public constant gasLimitInWei = 51000000000 wei; //  Gas price limit during individual cap period 
     uint256 public constant gmtFund = 500 * (10**6) * tokenUnit;  // 500M GMT reserved for development and user growth fund 
     uint256 public constant minCap = 100 * (10**6) * tokenUnit;  // 100M min cap to be sold during sale
 
@@ -190,12 +204,12 @@ contract GMToken is StandardToken {
     }
 
     modifier respectTimeFrame() {
-        require((block.number >= startBlock) && (block.number < endBlock));
+        require(block.number >= startBlock && block.number < endBlock);
         _;
     }
 
     modifier salePeriodCompleted() {
-        require(block.number >= endBlock);
+        require(block.number >= endBlock || assignedSupply.add(gmtFund) == totalSupply);
         _;
     }
 
@@ -227,6 +241,9 @@ contract GMToken is StandardToken {
         startBlock = _startBlock;
         endBlock = _endBlock;
         tokenExchangeRate = _tokenExchangeRate;
+        baseTokenCapPerAddress = baseEthCapPerAddress.mul(tokenExchangeRate);
+        firstCapEndingBlock = startBlock.add(blocksInFirstCapPeriod);
+        secondCapEndingBlock = firstCapEndingBlock.add(blocksInSecondCapPeriod);
         totalSupply = 1000 * (10**6) * tokenUnit;  // 1B total GMT tokens
         assignedSupply = 0;  // Set starting assigned supply to 0
     }
@@ -243,24 +260,52 @@ contract GMToken is StandardToken {
         isStopped = false;
     }
 
+    /// @dev Fallback function can be used to buy tokens
+    function () payable public {
+        claimTokens();
+    }
+
     /// @notice Create `msg.value` ETH worth of GMT
     /// @dev Only allowed to be called within the timeframe of the sale period
-    function claimTokens() respectTimeFrame registeredUser isValidState payable external {
+    function claimTokens() respectTimeFrame registeredUser isValidState payable public {
         require(msg.value > 0);
 
+        uint256 tokens = msg.value.mul(tokenExchangeRate);
+
+        require(isWithinCap(tokens));
+
         // Check that we're not over totals
-        uint256 tokens = msg.value.mul(tokenExchangeRate); 
         uint256 checkedSupply = assignedSupply.add(tokens);
 
         // Return money if we're over total token supply
         require(checkedSupply.add(gmtFund) <= totalSupply); 
 
         balances[msg.sender] = balances[msg.sender].add(tokens);
+        purchases[msg.sender] = purchases[msg.sender].add(tokens);
+
         assignedSupply = checkedSupply;
         ClaimGMT(msg.sender, tokens);  // Logs token creation for UI purposes
         // As per ERC20 spec, a token contract which creates new tokens SHOULD trigger a Transfer event with the _from address
         // set to 0x0 when tokens are created (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md)
         Transfer(0x0, msg.sender, tokens);
+    }
+
+    /// @dev Checks if transaction meets individual cap requirements
+    function isWithinCap(uint256 tokens) internal view returns (bool) {
+        // Return true if we've passed the cap period
+        if (block.number >= secondCapEndingBlock) {
+            return true;
+        }
+
+        // Ensure user is under gas limit
+        require(tx.gasprice <= gasLimitInWei);
+        
+        // Ensure user is not purchasing more tokens than allowed
+        if (block.number < firstCapEndingBlock) {
+            return purchases[msg.sender].add(tokens) <= baseTokenCapPerAddress;
+        } else {
+            return purchases[msg.sender].add(tokens) <= baseTokenCapPerAddress.mul(4);
+        }
     }
 
 
