@@ -148,11 +148,11 @@ contract GMToken is StandardToken {
     mapping (address => bool) public registered;
 
     /*
-    *  List of allocations per address
+    *  List of token purchases per address
     *  Same as balances[], except used for individual cap calculations, 
     *  because users can transfer tokens out during sale and reset token count in balances.
     */
-    mapping (address => uint) public allocated;
+    mapping (address => uint) public purchases;
 
     /*
     *  Crowdsale parameters
@@ -281,7 +281,7 @@ contract GMToken is StandardToken {
         require(checkedSupply.add(gmtFund) <= totalSupply); 
 
         balances[msg.sender] = balances[msg.sender].add(tokens);
-        allocated[msg.sender] = allocated[msg.sender].add(tokens);
+        purchases[msg.sender] = purchases[msg.sender].add(tokens);
 
         assignedSupply = checkedSupply;
         ClaimGMT(msg.sender, tokens);  // Logs token creation for UI purposes
@@ -302,9 +302,9 @@ contract GMToken is StandardToken {
         
         // Ensure user is not purchasing more tokens than allowed
         if (block.number < firstCapEndingBlock) {
-            return allocated[msg.sender].add(tokens) <= baseTokenCapPerAddress;
+            return purchases[msg.sender].add(tokens) <= baseTokenCapPerAddress;
         } else {
-            return allocated[msg.sender].add(tokens) <= baseTokenCapPerAddress.mul(4);
+            return purchases[msg.sender].add(tokens) <= baseTokenCapPerAddress.mul(4);
         }
     }
 
