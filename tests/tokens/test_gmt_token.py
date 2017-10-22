@@ -129,7 +129,6 @@ class TestContract(AbstractTestContracts):
 
         buyer_1 = 3
         value_1 = 1 * 10**18 # 1 Ether
-        buyer_1_tokens = value_1 * self.exchangeRate
 
         # Register user for participation
         self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
@@ -149,11 +148,11 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_1, sender=keys[buyer_1])
 
     def test_create_tokens_more_than_first_individual_cap(self):
-        # Move forward a few blocks to be within funding time frame AND within individual cap period
+        # Move forward a few blocks to be within funding time frame AND within first individual cap period
         self.c.head_state.block_number = self.gmt_token.firstCapEndingBlock() - 10
 
         buyer_1 = 3
-        value_1 = 11 * 10**18 # 1 Ether
+        value_1 = 11 * 10**18 # 11 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         # Register user for participation
         self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
@@ -162,7 +161,7 @@ class TestContract(AbstractTestContracts):
         self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_1, sender=keys[buyer_1])
 
     def test_create_tokens_more_than_second_individual_cap(self):
-        # Move forward a few blocks to be within funding time frame AND within individual cap period
+        # Move forward a few blocks to be within funding time frame AND within second individual cap period
         self.c.head_state.block_number = self.gmt_token.secondCapEndingBlock() - 10
 
         buyer_1 = 3
@@ -179,7 +178,7 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.block_number = self.gmt_token.firstCapEndingBlock() - 10
 
         buyer_1 = 3
-        value_1 = 5 * 10**18 # 1 Ether
+        value_1 = 5 * 10**18 # 5 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         # Register user for participation
         self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
@@ -190,7 +189,7 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.assignedSupply(), buyer_1_tokens)
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
 
-        self.c.head_state.block_number = self.gmt_token.firstCapEndingBlock() - 10
+        self.c.head_state.block_number = self.gmt_token.secondCapEndingBlock() - 10
 
         # Buyer buys again during second period, but more than allowed
         value_1_more = 40 * 10**18 # 1 Ether
@@ -207,7 +206,7 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.block_number = self.gmt_token.firstCapEndingBlock() - 10
 
         buyer_1 = 4
-        value_1 = 9 * 10**18 # 1 Ether
+        value_1 = 6 * 10**18 # 6 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         # Register user for participation
         self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
@@ -223,7 +222,7 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.block_number = self.gmt_token.secondCapEndingBlock() - 10
 
         buyer_1 = 4
-        value_1 = 35 * 10**18 # 1 Ether
+        value_1 = 27 * 10**18 # 27 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         # Register user for participation
         self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
@@ -239,7 +238,7 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.block_number = self.gmt_token.firstCapEndingBlock() - 10
 
         buyer_1 = 4
-        value_1 = 6 * 10**18 # 1 Ether
+        value_1 = 6 * 10**18 # 6 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         # Register user for participation
         self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
@@ -253,7 +252,7 @@ class TestContract(AbstractTestContracts):
         self.gmt_token.transfer("0xd6189c09b3708cee1d35d00de32b02abc7fbd55d", buyer_1_tokens, sender=keys[buyer_1])
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), 0)
         
-        # Buyer tries to buy again during cap period, but more than allowed
+        # Buyer tries to buy again during cap period, but more than allowed for this cap period
         value_1_more = 5 * 10**18 # 1 Ether
         buyer_1_tokens_more = value_1 * self.exchangeRate
 
@@ -266,14 +265,14 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.block_number = self.gmt_token.firstCapEndingBlock() - 1
         
         buyer_1 = 4
-        value_1 = 9 * 10**18 # 1 Ether
+        value_1 = 6 * 10**18 # 6 Ether
         buyer_1_tokens = value_1 * self.exchangeRate
         # Register user for participation
         self.gmt_token.changeRegistrationStatus(accounts[buyer_1], True)
 
         self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
         # Pyethereum Tester module not passing through gasprice for some reason?
-        # self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_1, sender=keys[buyer_1], gasprice=50000000010)
+        # self.assertRaises(TransactionFailed, self.gmt_token.claimTokens, value=value_1, sender=keys[buyer_1], gasprice=52000000000)
 
     def test_create_tokens(self):
         # Move forward a few blocks to be within funding time frame AFTER individual cap period
@@ -319,7 +318,7 @@ class TestContract(AbstractTestContracts):
         buyer_2 = 4
         buyer_3 = 5
         value_1 = 90 * 10**18 # 90 Ether
-        value_2 = 30000 * 10**18 # 30 Ether
+        value_2 = 30000 * 10**18 # 30k Ether
         value_3 = 200 * 10**18 # 200 Ether
         # Register users for participation
         targets = [accounts[buyer_1], accounts[buyer_2], accounts[buyer_3]]
@@ -365,58 +364,56 @@ class TestContract(AbstractTestContracts):
         # Should fail when min cap is not reached (i.e. 90 + 30 + 200 < minCap / exchangeRate)
         self.assertRaises(TransactionFailed, self.gmt_token.finalize)
     
-    # def test_finalize_after_mincap_before_sale_period(self):
-    #     # Move forward a few blocks to be within funding time frame AFTER individual cap period
-    #     self.c.head_state.block_number = self.gmt_token.secondCapEndingBlock() + 1
+    def test_finalize_after_mincap_before_sale_period(self):
+        # Move forward a few blocks to be within funding time frame AFTER individual cap period
+        self.c.head_state.block_number = self.gmt_token.secondCapEndingBlock() + 1
 
-    #     buyer_1 = 3
-    #     buyer_2 = 4
-    #     buyer_3 = 5
-    #     value_1 = 50 * 10**18 # 90 Ether
-    #     value_2 = 50 * 10**18 # 30 Ether
-    #     value_3 = round((self.gmt_token.totalSupply() - self.gmtFund) * (1/self.exchangeRate)) - value_1 - value_2 - 16777216 # remaining Ether
+        buyer_1 = 3
+        buyer_2 = 4
+        buyer_3 = 5
+        value_1 = 10000 * 10**18 # 10k Ether
+        value_2 = 20000 * 10**18 # 20k Ether
+        value_3 = (1 * 10**23) - value_1 - value_2 # Remaining supply = (500M tokens / exchangeRate) - (already assigned supply)
 
-    #     # Register users for participation
-    #     targets = [accounts[buyer_1], accounts[buyer_2], accounts[buyer_3]]
-    #     self.gmt_token.changeRegistrationStatuses(targets, True)
+        # Register users for participation
+        targets = [accounts[buyer_1], accounts[buyer_2], accounts[buyer_3]]
+        self.gmt_token.changeRegistrationStatuses(targets, True)
 
-    #     buyer_1_tokens = value_1 * self.exchangeRate
-    #     buyer_2_tokens = value_2 * self.exchangeRate
-    #     buyer_3_tokens = value_3 * self.exchangeRate
-    #     print(value_3 - ((self.gmt_token.totalSupply() - self.gmtFund - buyer_1_tokens - buyer_2_tokens) * (1/self.exchangeRate)))
-    #     starting_balance = self.c.head_state.get_balance(self.eth_wallet_address)
+        buyer_1_tokens = value_1 * self.exchangeRate
+        buyer_2_tokens = value_2 * self.exchangeRate
+        buyer_3_tokens = value_3 * self.exchangeRate
+        starting_balance = self.c.head_state.get_balance(self.eth_wallet_address)
 
-    #     self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
-    #     self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
-    #     self.c.head_state.set_balance(accounts[buyer_3], value_3 * 2)
+        self.c.head_state.set_balance(accounts[buyer_1], value_1 * 2)
+        self.c.head_state.set_balance(accounts[buyer_2], value_2 * 2)
+        self.c.head_state.set_balance(accounts[buyer_3], value_3 * 2)
 
-    #     self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
-    #     self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
-    #     self.gmt_token.claimTokens(value=value_3, sender=keys[buyer_3])
+        self.gmt_token.claimTokens(value=value_1, sender=keys[buyer_1])
+        self.gmt_token.claimTokens(value=value_2, sender=keys[buyer_2])
+        self.gmt_token.claimTokens(value=value_3, sender=keys[buyer_3])
 
-    #      # Verify we've updated the total assigned supply of GMT appropriately
-    #     self.assertEqual(self.gmt_token.assignedSupply(), buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
+         # Verify we've updated the total assigned supply of GMT appropriately
+        self.assertEqual(self.gmt_token.assignedSupply(), buyer_1_tokens + buyer_2_tokens + buyer_3_tokens)
 
-    #     # Set block number to before end block
-    #     self.c.head_state.block_number = self.endBlock - 10
-    #     print(self.gmt_token.totalSupply() - self.gmt_token.assignedSupply() - self.gmtFund)
-    #     # Should work when assigned supply is total supply
-    #     self.gmt_token.finalize()
-    #     self.assertEqual(self.gmt_token.isFinalized(), True)
+        # Set block number to before end block
+        self.c.head_state.block_number = self.endBlock - 10
+        # Should work when assigned supply is total supply
+        self.gmt_token.finalize()
+        self.assertEqual(self.gmt_token.isFinalized(), True)
 
-    #     # Verify buyers received the appropriate token amount
-    #     self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
-    #     self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_2]), buyer_2_tokens)
-    #     self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_3]), buyer_3_tokens)
+        # Verify buyers received the appropriate token amount
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_1]), buyer_1_tokens)
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_2]), buyer_2_tokens)
+        self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_3]), buyer_3_tokens)
 
-    #     # Verify GMT funds were sent to GMT fund address
-    #     self.assertEqual(self.gmt_token.balanceOf(self.gmt_wallet_address), self.gmtFund)
+        # Verify GMT funds were sent to GMT fund address
+        self.assertEqual(self.gmt_token.balanceOf(self.gmt_wallet_address), self.gmt_token.gmtFund())
 
-    #     # Verify we've updated the total assigned supply of GMT to account for unassigned supply being sent to GMT fund
-    #     self.assertEqual(self.gmt_token.assignedSupply(), self.totalSupply)
+        # Verify we've updated the total assigned supply of GMT to account for unassigned supply being sent to GMT fund
+        self.assertEqual(self.gmt_token.assignedSupply(), self.gmt_token.totalSupply())
 
-    #     # Verify ETH balance of ETH wallet address
-    #     self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3 + starting_balance)
+        # Verify ETH balance of ETH wallet address
+        self.assertEqual(round(self.c.head_state.get_balance(self.eth_wallet_address), -10), value_1 + value_2 + value_3 + starting_balance)
     
     def test_finalize(self):
         # Move forward a few blocks to be within funding time frame AFTER individual cap period
@@ -425,7 +422,7 @@ class TestContract(AbstractTestContracts):
         buyer_1 = 3
         buyer_2 = 4
         buyer_3 = 5
-        value_1 = 900 * 10**18 # 90 Ether
+        value_1 = 900 * 10**18 # 900 Ether
         value_2 = 30000 * 10**18 # 30k Ether
         value_3 = 200 * 10**18 # 200 Ether
         # Register users for participation
@@ -452,7 +449,7 @@ class TestContract(AbstractTestContracts):
         self.c.head_state.block_number = self.endBlock + 1
 
         # Calculate the unassigned supply
-        unassignedSupply = self.gmt_token.totalSupply() - self.gmt_token.assignedSupply() - self.gmtFund
+        unassignedSupply = self.gmt_token.totalSupply() - self.gmt_token.assignedSupply() - self.gmt_token.gmtFund()
         
         # Should work when min cap is reached (i.e. 900 + 30000 + 200 >= minCap / exchangeRate)
         self.gmt_token.finalize()
@@ -464,7 +461,7 @@ class TestContract(AbstractTestContracts):
         self.assertEqual(self.gmt_token.balanceOf(accounts[buyer_3]), buyer_3_tokens)
 
         # Verify GMT funds were sent to GMT fund address, and any unassigned supply
-        self.assertEqual(self.gmt_token.balanceOf(self.gmt_wallet_address), self.gmtFund + unassignedSupply)
+        self.assertEqual(self.gmt_token.balanceOf(self.gmt_wallet_address), self.gmt_token.gmtFund() + unassignedSupply)
 
         # Verify we've updated the total assigned supply of GMT to account for unassigned supply being sent to GMT fund
         self.assertEqual(self.gmt_token.assignedSupply(), self.totalSupply)
@@ -478,8 +475,8 @@ class TestContract(AbstractTestContracts):
 
         buyer_1 = 3
         buyer_2 = 4
-        value_1 = 30000 * 10**18 # 300 Ether
-        value_2 = 5000 * 10**18 # 10 Ether
+        value_1 = 30000 * 10**18 # 30k Ether
+        value_2 = 5000 * 10**18 # 5k Ether
         # Register users for participation
         targets = [accounts[buyer_1], accounts[buyer_2]]
         self.gmt_token.changeRegistrationStatuses(targets, True)

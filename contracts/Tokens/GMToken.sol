@@ -48,12 +48,12 @@ contract GMToken is StandardToken {
     bool public isStopped;
     uint256 public startBlock;  // Block number when sale period begins
     uint256 public endBlock;  // Block number when sale period ends
-    uint256 public firstCapEndingBlock;  // Block number when first individual cap period ends
-    uint256 public secondCapEndingBlock;  // Block number when first individual cap period ends
+    uint256 public firstCapEndingBlock;  // Block number when first individual user cap period ends
+    uint256 public secondCapEndingBlock;  // Block number when second individual user cap period ends
     uint256 public assignedSupply;  // Total GMT tokens currently assigned
     uint256 public tokenExchangeRate;  // Units of GMT per ETH
     uint256 public baseTokenCapPerAddress;  // Base user cap in GMT tokens
-    uint256 public constant baseEthCapPerAddress = 10 ether;  // Base user cap in ETH
+    uint256 public constant baseEthCapPerAddress = 7 ether;  // Base user cap in ETH
     uint256 public constant blocksInFirstCapPeriod = 2000;  // Block length for first cap period
     uint256 public constant blocksInSecondCapPeriod = 1000;  // Block length for second cap period
     uint256 public constant gasLimitInWei = 51000000000 wei; //  Gas price limit during individual cap period 
