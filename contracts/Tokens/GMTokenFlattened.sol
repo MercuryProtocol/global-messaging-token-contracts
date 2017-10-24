@@ -167,8 +167,8 @@ contract GMToken is StandardToken {
     uint256 public tokenExchangeRate;  // Units of GMT per ETH
     uint256 public baseTokenCapPerAddress;  // Base user cap in GMT tokens
     uint256 public constant baseEthCapPerAddress = 7 ether;  // Base user cap in ETH
-    uint256 public constant blocksInFirstCapPeriod = 2000;  // Block length for first cap period
-    uint256 public constant blocksInSecondCapPeriod = 1000;  // Block length for second cap period
+    uint256 public constant blocksInFirstCapPeriod = 2105;  // Block length for first cap period
+    uint256 public constant blocksInSecondCapPeriod = 1052;  // Block length for second cap period
     uint256 public constant gasLimitInWei = 51000000000 wei; //  Gas price limit during individual cap period 
     uint256 public constant gmtFund = 500 * (10**6) * tokenUnit;  // 500M GMT reserved for development and user growth fund 
     uint256 public constant minCap = 100 * (10**6) * tokenUnit;  // 100M min cap to be sold during sale
@@ -368,12 +368,5 @@ contract GMToken is StandardToken {
         
         RefundSent(msg.sender, ethVal);  // Log successful refund 
     }
-
-    /*
-        NOTE: We explicitly do not define a fallback function, in order to prevent 
-        receiving Ether for no reason. As noted in Solidity documentation, contracts 
-        that receive Ether directly (without a function call, i.e. using send or transfer)
-        but do not define a fallback function throw an exception, sending back the Ether (this was different before Solidity v0.4.0).
-    */
 }
 
