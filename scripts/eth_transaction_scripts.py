@@ -133,8 +133,9 @@ class Transactions_Handler:
         self.log("Balance for address {} is {} Ether / {} Wei".format(address, balance/10**18, balance))
     
     def change_owner(self, address):
-        self.contract.transact({ 'from': self._from }).changeOwner(address)
+        change_owner_hash = self.contract.transact({ 'from': self._from }).changeOwner(address)
         self.log("Owner for contract changed from {} to {}".format(self._from, address))
+        self.log("Transaction hash: {}".format(change_owner_hash))
 
     def change_registration_status(self, address, status):
         change_registration_status_transaction_hash = self.contract.transact({ 'from': self._from }).changeRegistrationStatus(address, status)
@@ -142,11 +143,25 @@ class Transactions_Handler:
     
     def change_registration_statuses(self, addressesArray, status):
         change_registration_status_transaction_hash = self.contract.transact({ 'from': self._from }).changeRegistrationStatuses(addressesArray, status)
+        self.log("chaging registration status")
         self.log("Transaction hash: {}".format(change_registration_status_transaction_hash))
 
     def is_registered(self, address):
         registered = self.contract.call({ 'from': self._from }).registered(address)
         self.log('Is {} Registered: {}'.format(address, registered))
+
+    def is_registered_from_file(self):
+        fn = os.path.join(os.path.dirname(__file__), 'accepted_10232017_1105/accepted_128.json')
+        with open(fn, 'r') as instructions_file:
+            addresses = json.load(instructions_file)
+
+        for x in addresses:
+            self.log("Address {} is registered: {}".format(x, self.contract.call({ 'from': self._from }).registered(x)))
+
+    def check_valid_address(self, addresses):
+        for x in addresses:
+            self.log("Address {} is address {}".format(x, self.web3.isAddress(x)))
+
 
     def restart_sale(self):
         restart_sale_transaction_hash = self.contract.transact({ 'from': self._from }).restartSale()
@@ -284,7 +299,7 @@ class Transactions_Handler:
 @click.option('--host', default="localhost", help='Ethereum node host')
 @click.option('--port', default='8545', help='Ethereum node port')
 @click.option('--gas', default=4000000, help='Transaction gas')
-@click.option('--gas-price', default=31000000000, help='Transaction gas price')
+@click.option('--gas-price', default=41000000000, help='Transaction gas price')
 @click.option('--contract-addr', help='Address of contract to interact with')
 @click.option('--account', help='Default account used as from parameter')
 @click.option('--private-key-path', help='Path to private key')
@@ -300,14 +315,18 @@ def setup(protocol, host, port, gas, gas_price, contract_addr, account, private_
     # transactions_handler.get_transaction_receipt('TRANSACTION_HASH')
     # transactions_handler.get_nonce()
     # transactions_handler.estimate_gas()
-    # transactions_handler.is_registered('ADDRESS')
-    # transactions_handler.is_registered('ADDRESS')
+    # transactions_handler.is_registered("")
+
     addresses_1 = []
-    addresses_2 = []
-    # transactions_handler.change_registration_statuses(addresses_1, True)
+
+    # transactions_handler.change_owner("")
+    # transactions_handler.get_owner()
+    # transactions_handler.is_registered_from_file()
+    # transactions_handler.check_valid_address(addresses_1)
+    transactions_handler.change_registration_statuses(addresses_1, True)
     # transactions_handler.claim_tokens(1100000000000000000)
-    # transactions_handler.get_gmt_balance_of("0x04ca6ceFeB15E82Ce3f156f4cD8727571E94b99c")
-    transactions_handler.finalize()
+    # transactions_handler.get_gmt_balance_of("")
+    # transactions_handler.finalize()
 
 if __name__ == '__main__':
   setup()
